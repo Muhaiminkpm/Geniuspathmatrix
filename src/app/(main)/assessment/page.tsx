@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -7,7 +8,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { getCareerSuggestions, generateSwotAnalysis } from '@/lib/actions';
 import type { CareerSuggestion, SwotAnalysis } from '@/lib/types';
@@ -18,24 +18,28 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 const assessmentSections = [
   {
+    id: 'personality',
     title: 'Personality Assessment',
     questions: 30,
     time: 15,
     instructions: 'Rate how much each statement describes you on a scale of 1 (Disagree) to 4 (Agree).',
   },
   {
+    id: 'interest',
     title: 'Interest Inventory',
     questions: 20,
     time: 10,
     instructions: 'Indicate how much you would enjoy performing each activity on a scale of 1 (Dislike) to 4 (Like).',
   },
   {
+    id: 'cognitive',
     title: 'Cognitive Capability + Skill Mapping',
     questions: 20,
     time: 20,
     instructions: 'This section has two parts. First, answer cognitive ability questions. Then, self-assess your skills.',
   },
   {
+    id: 'cvq',
     title: 'Contextual Viability Quotient (CVQ™)',
     questions: 20,
     time: 15,
@@ -46,24 +50,30 @@ const assessmentSections = [
 const totalSteps = assessmentSections.length + 1; // +1 for the initial instructions screen
 
 const ratingLabels = {
-  '1-4': [
+  'personality': [
     { value: '1', label: 'Strongly Disagree' },
     { value: '2', label: 'Disagree' },
     { value: '3', label: 'Agree' },
     { value: '4', label: 'Strongly Agree' },
   ],
-  'like-1-4': [
+  'interest': [
     { value: '1', label: 'Strongly Dislike' },
     { value: '2', label: 'Dislike' },
     { value: '3', label: 'Like' },
     { value: '4', label: 'Strongly Like' },
   ],
-  'confidence-1-4': [
+  'skillMapping': [
     { value: '1', label: 'Not at all confident' },
     { value: '2', label: 'Slightly confident' },
     { value: '3', label: 'Confident' },
     { value: '4', label: 'Very confident' },
   ],
+  'cvq': [
+    { value: '1', label: 'Strongly Disagree' },
+    { value: '2', label: 'Disagree' },
+    { value: '3', label: 'Agree' },
+    { value: '4', label: 'Strongly Agree' },
+  ]
 };
 
 const assessmentQuestions = {
@@ -122,14 +132,14 @@ const assessmentQuestions = {
     { id: 'i20', question: 'Imagining new inventions or solutions to problems.' },
   ],
   cognitive: [
-      { id: 'cog1', question: 'Which word is the odd one out: Apple, Banana, Carrot, Orange?', options: ['Apple', 'Banana', 'Carrot', 'Orange'] },
+      { id: 'cog1', question: 'Which word is the odd one out:', options: ['Apple', 'Banana', 'Carrot', 'Orange'] },
       { id: 'cog2', question: 'Complete the series: 2, 4, 8, 16, ?', options: ['20', '24', '32', '36'] },
       { id: 'cog3', question: 'If a bird is to flying as a fish is to ____?', options: ['Swimming', 'Jumping', 'Eating', 'Singing'] },
       { id: 'cog4', question: 'Which shape comes next in the sequence: Triangle, Square, Pentagon, ?', options: ['Hexagon', 'Heptagon', 'Circle', 'Star'] },
       { id: 'cog5', question: 'A cyclist travels 10 km in 20 minutes. How far will they travel in 1 hour?', options: ['10 km', '20 km', '30 km', '40 km'] },
       { id: 'cog6', question: 'Find the missing number: 1, 3, 6, 10, ?', options: ['13', '14', '15', '16'] },
-      { id: 'cog7', question: 'Which word is the odd one out: Book, Pen, Eraser, Desk?', options: ['Book', 'Pen', 'Eraser', 'Desk'] },
-      { id: 'cog8', question: 'If all students are learners, and all learners are curious, then all students are curious. True, False, Cannot Say, or Irrelevant?', options: ['True', 'False', 'Cannot Say', 'Irrelevant'] },
+      { id: 'cog7', question: 'Which word is the odd one out:', options: ['Book', 'Pen', 'Eraser', 'Desk'] },
+      { id: 'cog8', question: 'If all students are learners, and all learners are curious, then all students are curious. True or False?', options: ['True', 'False', 'Cannot Say', 'Irrelevant'] },
       { id: 'cog9', question: 'Which of the following is the next logical step in the pattern: AB, CD, EF, GH, ?', options: ['IJ', 'KL', 'JK', 'HI'] },
       { id: 'cog10', question: 'If you rearrange the letters \'TINAP\', you would have the name of a(n):', options: ['Animal', 'Fruit', 'Color', 'Country'] },
   ],
@@ -155,7 +165,7 @@ const assessmentQuestions = {
     { id: 'cvq7', section: 'Language Readiness (Current + Future)', question: 'I understand lectures, videos, or tutorials in English without needing translations.' },
     { id: 'cvq8', section: 'Language Readiness (Current + Future)', question: 'I believe I can become fluent in English or another required language within 2 years.' },
     { id: 'cvq9', section: 'Language Readiness (Current + Future)', question: 'I would avoid certain careers due to language limitations. (reverse scored)' },
-    { id: 'cvq10', 'section': 'Language Readiness (Current + Future)', question: 'I am confident in my ability to clear language-based entrance tests or interviews.' },
+    { id: 'cvq10', section: 'Language Readiness (Current + Future)', question: 'I am confident in my ability to clear language-based entrance tests or interviews.' },
     { id: 'cvq11', section: 'Digital Access & Tech Confidence', question: 'I have regular access to a smartphone with internet.' },
     { id: 'cvq12', section: 'Digital Access & Tech Confidence', question: 'I have access to a laptop or desktop at least 3 days per week.' },
     { id: 'cvq13', section: 'Digital Access & Tech Confidence', question: 'I feel confident using online learning platforms and productivity tools.' },
@@ -299,80 +309,87 @@ function Timer({ minutes, onTimeUp }: { minutes: number; onTimeUp: () => void })
   );
 }
 
-function LikertScale({ id, question, labels, onChange, vertical = false }: { id: string; question: string; labels: {value: string; label: string}[], onChange: (value: string) => void, vertical?: boolean}) {
-  return (
-    <div key={id} className="space-y-3">
-      <p>{question}</p>
-      <RadioGroup onValueChange={onChange} className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
-        {vertical ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
-                {labels.map(l => (
-                    <div key={l.value} className="flex items-center space-x-2">
-                        <RadioGroupItem value={l.value} id={`${id}-${l.value}`} />
-                        <Label htmlFor={`${id}-${l.value}`}>{l.label}</Label>
-                    </div>
-                ))}
-            </div>
-        ) : (
-          <>
-            <Label className="w-full text-left sm:w-1/5">{labels[0].label}</Label>
-            <div className="flex justify-center items-center gap-4">
-              {labels.map(l => (
-                <div key={l.value} className="flex flex-col items-center gap-1">
-                  <RadioGroupItem value={l.value} id={`${id}-${l.value}`} />
-                  <Label htmlFor={`${id}-${l.value}`} className="text-xs">{l.value}</Label>
-                </div>
-              ))}
-            </div>
-            <Label className="w-full text-right sm:w-1/5">{labels[labels.length-1].label}</Label>
-          </>
-        )}
-      </RadioGroup>
-    </div>
-  );
-}
+function QuestionCard({
+  question,
+  options,
+  selectedValue,
+  onChange,
+}: {
+  question: { id: string; question: string; options?: string[] };
+  options: { value: string; label: string }[];
+  selectedValue: string;
+  onChange: (value: string) => void;
+}) {
+  const isMcq = !!question.options;
+  const answerOptions = isMcq
+    ? question.options!.map(opt => ({ value: opt, label: opt }))
+    : options;
 
-function MultipleChoice({ id, question, options, onChange }: { id: string; question: string; options: string[], onChange: (value: string) => void }) {
   return (
-    <div key={id} className="space-y-3">
-      <p>{question}</p>
-      <RadioGroup onValueChange={onChange} className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {options.map((option, i) => (
-          <div key={i} className="flex items-center space-x-2">
-            <RadioGroupItem value={option} id={`${id}-${i}`} />
-            <Label htmlFor={`${id}-${i}`}>{option}</Label>
+    <Card>
+      <CardContent className="p-6">
+        <p className="font-medium mb-4">{question.question}</p>
+        <RadioGroup value={selectedValue} onValueChange={onChange}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {answerOptions.map(opt => (
+              <Label
+                key={opt.value}
+                htmlFor={`${question.id}-${opt.value}`}
+                className="flex items-center gap-3 rounded-md border p-3 hover:bg-accent has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/10"
+              >
+                <RadioGroupItem value={opt.value} id={`${question.id}-${opt.value}`} />
+                {opt.label}
+              </Label>
+            ))}
           </div>
-        ))}
-      </RadioGroup>
-    </div>
-  )
+        </RadioGroup>
+      </CardContent>
+    </Card>
+  );
 }
 
 export default function AssessmentPage() {
   const [currentStep, setCurrentStep] = React.useState(0);
-  const [formData, setFormData] = React.useState({
-    personality: '',
-    interest: '',
-    cognitiveAbilities: '',
-    selfReportedSkills: '',
-    cvq: '',
+  const [answers, setAnswers] = React.useState<Record<string, Record<string, string>>>({
+    personality: {},
+    interest: {},
+    cognitiveAbilities: {},
+    selfReportedSkills: {},
+    cvq: {},
   });
   const [isLoading, setIsLoading] = React.useState(false);
   const [results, setResults] = React.useState<CareerSuggestion[] | null>(null);
   const { toast } = useToast();
 
-  const handleNext = () => setCurrentStep((prev) => Math.min(prev + 1, totalSteps - 1));
-  const handleBack = () => setCurrentStep((prev) => Math.max(prev - 1, 0));
-  
-  const handleValueChange = (category: keyof typeof formData, value: string) => {
-    setFormData(prev => ({...prev, [category]: value}));
+  const handleNext = () => setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+  const handleBack = () => setCurrentStep(prev => Math.max(prev - 1, 0));
+
+  const handleAnswerChange = (category: string, questionId: string, value: string) => {
+    setAnswers(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [questionId]: value,
+      },
+    }));
   };
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    const result = await getCareerSuggestions(formData);
+
+    const formattedAnswers = {
+      personality: Object.entries(answers.personality).map(([k, v]) => `${k}:${v}`).join(' '),
+      interest: Object.entries(answers.interest).map(([k, v]) => `${k}:${v}`).join(' '),
+      cognitiveAbilities: Object.entries(answers.cognitiveAbilities).map(([k, v]) => `${k}:${v}`).join(' '),
+      selfReportedSkills: Object.entries(answers.selfReportedSkills).map(([k, v]) => `${k}:${v}`).join(' '),
+      cvq: Object.entries(answers.cvq).map(([k, v]) => `${k}:${v}`).join(' '),
+    };
+    
+    const result = await getCareerSuggestions(formattedAnswers);
+    
     if (result.success && result.data) {
       setResults(result.data);
+      setCurrentStep(totalSteps); // Move to results screen
     } else {
       toast({
         variant: 'destructive',
@@ -386,58 +403,89 @@ export default function AssessmentPage() {
   const resetAssessment = () => {
     setResults(null);
     setCurrentStep(0);
-    setFormData({ personality: '', interest: '', cognitiveAbilities: '', selfReportedSkills: '', cvq: '' });
+    setAnswers({ personality: {}, interest: {}, cognitiveAbilities: {}, selfReportedSkills: {}, cvq: {} });
   }
 
   const renderStep = () => {
     if (currentStep > 0 && currentStep <= assessmentSections.length) {
       const sectionIndex = currentStep - 1;
       const section = assessmentSections[sectionIndex];
-      let questions;
-      switch(sectionIndex) {
-        case 0: // Personality
-          questions = assessmentQuestions.personality.map(q => 
-             <LikertScale key={q.id} id={q.id} question={q.question} labels={ratingLabels['1-4']} onChange={(v) => handleValueChange('personality', formData.personality + ` ${q.id}:${v}`)} />
+      let questionsContent;
+      
+      switch(section.id) {
+        case 'personality':
+          questionsContent = assessmentQuestions.personality.map(q => 
+             <QuestionCard 
+                key={q.id}
+                question={q}
+                options={ratingLabels.personality}
+                selectedValue={answers.personality[q.id]}
+                onChange={(v) => handleAnswerChange('personality', q.id, v)} 
+             />
           );
           break;
-        case 1: // Interest
-          questions = assessmentQuestions.interest.map(q => 
-             <LikertScale key={q.id} id={q.id} question={q.question} labels={ratingLabels['like-1-4']} onChange={(v) => handleValueChange('interest', formData.interest + ` ${q.id}:${v}`)} />
-          );
+        case 'interest':
+          questionsContent = assessmentQuestions.interest.map(q => 
+            <QuestionCard 
+               key={q.id}
+               question={q}
+               options={ratingLabels.interest}
+               selectedValue={answers.interest[q.id]}
+               onChange={(v) => handleAnswerChange('interest', q.id, v)} 
+            />
+         );
           break;
-        case 2: // Cognitive + Skill
-          questions = (
+        case 'cognitive': // This is the combined Cognitive + Skill mapping section
+          questionsContent = (
             <div className="space-y-8">
               <div>
-                <h4 className="font-bold text-lg mb-4">Part A: Cognitive Capability</h4>
+                <h3 className="font-bold text-xl mb-4">Part A: Cognitive Capability</h3>
                 <div className="space-y-6">
                   {assessmentQuestions.cognitive.map((q, i) => 
-                    <MultipleChoice key={q.id} id={q.id} question={`${i+1}. ${q.question}`} options={q.options} onChange={(v) => handleValueChange('cognitiveAbilities', formData.cognitiveAbilities + ` ${q.id}:${v}`)} />
+                    <QuestionCard 
+                      key={q.id}
+                      question={{...q, question: `${i+1}. ${q.question}`}}
+                      options={[]} // options are in the question object for MCQ
+                      selectedValue={answers.cognitiveAbilities[q.id]}
+                      onChange={(v) => handleAnswerChange('cognitiveAbilities', q.id, v)} 
+                    />
                   )}
                 </div>
               </div>
               <div className="border-t pt-8">
-                 <h4 className="font-bold text-lg mb-4">Part B: Skill Mapping</h4>
+                 <h3 className="font-bold text-xl mb-4">Part B: Skill Mapping</h3>
                  <div className="space-y-6">
                   {assessmentQuestions.skillMapping.map((q, i) =>
-                    <LikertScale key={q.id} id={q.id} question={`${i+11}. ${q.question}`} labels={ratingLabels['confidence-1-4']} onChange={(v) => handleValueChange('selfReportedSkills', formData.selfReportedSkills + ` ${q.id}:${v}`)} vertical={true} />
+                    <QuestionCard 
+                      key={q.id}
+                      question={{...q, question: `${i+11}. ${q.question}`}}
+                      options={ratingLabels.skillMapping}
+                      selectedValue={answers.selfReportedSkills[q.id]}
+                      onChange={(v) => handleAnswerChange('selfReportedSkills', q.id, v)} 
+                    />
                   )}
                  </div>
               </div>
             </div>
           );
           break;
-        case 3: // CVQ
+        case 'cvq':
           const cvqSections: {[key: string]: typeof assessmentQuestions.cvq} = {};
           assessmentQuestions.cvq.forEach(q => {
             if (!cvqSections[q.section]) cvqSections[q.section] = [];
             cvqSections[q.section].push(q);
           });
-          questions = Object.entries(cvqSections).map(([sectionTitle, qs]) => (
+          questionsContent = Object.entries(cvqSections).map(([sectionTitle, qs]) => (
             <div key={sectionTitle} className="space-y-6">
-              <h4 className="font-bold text-lg">{sectionTitle}</h4>
+              <h3 className="font-bold text-xl mb-4">{sectionTitle}</h3>
               {qs.map(q =>
-                <LikertScale key={q.id} id={q.id} question={q.question} labels={ratingLabels['1-4']} onChange={(v) => handleValueChange('cvq', formData.cvq + ` ${q.id}:${v}`)} />
+                <QuestionCard 
+                  key={q.id}
+                  question={q}
+                  options={ratingLabels.cvq}
+                  selectedValue={answers.cvq[q.id]}
+                  onChange={(v) => handleAnswerChange('cvq', q.id, v)} 
+                />
               )}
             </div>
           ));
@@ -455,7 +503,7 @@ export default function AssessmentPage() {
             <Timer minutes={section.time} onTimeUp={handleNext} />
           </CardHeader>
           <CardContent className="p-6 md:p-8 space-y-6">
-            {questions}
+            {questionsContent}
           </CardContent>
         </Card>
       );
@@ -503,11 +551,14 @@ export default function AssessmentPage() {
                 </Alert>
             </CardContent>
              <CardFooter>
-                <Button onClick={handleNext} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-6 rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105" size="lg">Start Assessment</Button>
+                <Button onClick={handleNext} className="w-full" size="lg">Start Assessment</Button>
             </CardFooter>
         </Card>
     );
   };
+
+  const isLastStep = currentStep === assessmentSections.length;
+  const selfReportedSkillsString = Object.entries(answers.selfReportedSkills).map(([k, v]) => `${k}:${v}`).join(' ');
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -520,30 +571,30 @@ export default function AssessmentPage() {
               <p className="text-muted-foreground max-w-md">Our AI is crunching the numbers to find your perfect career matches. This might take a moment.</p>
            </div>
         ) : results ? (
-           <CareerResults suggestions={results} userSkills={formData.selfReportedSkills} onReset={resetAssessment} />
+           <CareerResults suggestions={results} userSkills={selfReportedSkillsString} onReset={resetAssessment} />
         ) : (
           <div className="max-w-4xl mx-auto space-y-8">
-            {currentStep > 0 && (
+            {currentStep > 0 && currentStep <= assessmentSections.length && (
                 <div className="space-y-4">
-                  <Progress value={(currentStep / (totalSteps-1)) * 100} className="w-full" />
-                  <p className="text-center text-sm text-muted-foreground">Section {currentStep} of {totalSteps-1}</p>
+                  <Progress value={(currentStep / assessmentSections.length) * 100} className="w-full" />
+                  <p className="text-center text-sm text-muted-foreground">Section {currentStep} of {assessmentSections.length}</p>
                 </div>
             )}
             
             {renderStep()}
             
-            {currentStep > 0 && (
-                <div className="flex justify-between items-center">
+            {currentStep > 0 && currentStep <= assessmentSections.length && (
+                <div className="flex justify-between items-center mt-6">
                     <Button variant="outline" onClick={handleBack} disabled={currentStep === 1}>
                         <ArrowLeft className="mr-2 h-4 w-4" /> Back
                     </Button>
-                    {currentStep < totalSteps -1 ? (
-                        <Button onClick={handleNext} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105">
-                            Next Section <ArrowRight className="ml-2 h-4 w-4" />
+                    {isLastStep ? (
+                        <Button onClick={handleSubmit} disabled={isLoading} size="lg">
+                            {isLoading ? <LoadingSpinner className="mr-2"/> : 'Get My Results'}
                         </Button>
                     ) : (
-                        <Button onClick={handleSubmit} disabled={isLoading} className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-2 px-4 rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105">
-                            {isLoading ? <LoadingSpinner className="mr-2"/> : 'Get My Results'}
+                        <Button onClick={handleNext} size="lg">
+                            Next Section <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                     )}
                 </div>
@@ -555,3 +606,5 @@ export default function AssessmentPage() {
     </div>
   );
 }
+
+    
