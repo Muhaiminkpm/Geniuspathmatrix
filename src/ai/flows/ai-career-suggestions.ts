@@ -33,7 +33,7 @@ const CareerSuggestionSchema = z.object({
   matchExplanation: z.string().describe("An explanation of why this career is a good match based on the user's assessment results (personality, interests, skills) and constraints (CVQ)."),
 });
 
-const SuggestCareersOutputSchema = z.array(CareerSuggestionSchema).min(10).describe('A list of at least 10 career suggestions based on the input.');
+const SuggestCareersOutputSchema = z.array(CareerSuggestionSchema).min(10).describe('A list of at least 10 career suggestions based on the input, with the best match as the first item.');
 export type SuggestCareersOutput = z.infer<typeof SuggestCareersOutputSchema>;
 
 export async function suggestCareers(input: SuggestCareersInput): Promise<SuggestCareersOutput> {
@@ -46,7 +46,7 @@ const suggestCareersPrompt = ai.definePrompt({
   output: {schema: SuggestCareersOutputSchema},
   prompt: `You are a pragmatic and experienced AI career advisor with a deep understanding of future job market trends. Your primary goal is to suggest reliable, in-demand, and future-proof careers with strong long-term market viability. You must consider the rise of AI and automation, and suggest roles that are either newly emerging due to these trends or are time-tested professions that require skills less likely to be automated (e.g., complex problem-solving, creativity, emotional intelligence, strategy).
 
-Based on the following assessment results, suggest at least 10 potential careers that align with the student's profile.
+Based on the following assessment results, suggest at least 10 potential careers that align with the student's profile, with the best match sorted as the first item in the array.
 
 Crucially, you must use the CVQ results as a filter. If the CVQ indicates significant constraints (e.g., financial limitations, unwillingness to relocate), do not suggest careers that would be impractical.
 
