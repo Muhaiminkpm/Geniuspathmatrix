@@ -15,21 +15,27 @@ import {
   ClipboardCheck,
   Compass,
   Goal,
-  Bot,
+  Users,
   FileText,
   GraduationCap,
+  Settings,
+  CircleHelp,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 const navItems = [
-  { href: '/dashboard', icon: Home, label: 'Home' },
-  { href: '/assessment', icon: ClipboardCheck, label: 'InsightX Assessment' },
-  { href: '/pathxplore', icon: Compass, label: 'PathXplore Career' },
-  { href: '/goals', icon: Goal, label: 'GoalMint Planner' },
-  { href: '/mentors', icon: Bot, label: 'MentorSuite AI' },
+  { href: '/dashboard', icon: Home, label: 'Dashboard' },
+  { href: '/assessment', icon: ClipboardCheck, label: 'Assessment' },
+  { href: '/goals', icon: Goal, label: 'Goal Plan' },
+  { href: '/mentors', icon: Users, label: 'Mentors' },
   { href: '/reports', icon: FileText, label: 'Reports' },
 ];
+
+const bottomNavItems = [
+    { href: '/help', icon: CircleHelp, label: 'Help' },
+    { href: '/settings', icon: Settings, label: 'Settings' },
+]
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -40,7 +46,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-2">
            <div className="flex items-center gap-2 text-primary">
               <GraduationCap className="h-7 w-7" />
-              <span className="font-headline text-lg font-semibold">Path-GeniX™</span>
+              <span className="font-headline text-lg font-semibold">Path-GeniX</span>
             </div>
         </div>
       </SidebarHeader>
@@ -61,7 +67,22 @@ export function AppSidebar() {
           ))}
         </SidebarMenu>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter className="p-2">
+         <SidebarMenu>
+            {bottomNavItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                <Link href={item.href} legacyBehavior passHref>
+                    <SidebarMenuButton
+                    isActive={pathname === item.href}
+                    tooltip={{ children: item.label, side: 'right' }}
+                    >
+                    <item.icon />
+                    <span>{item.label}</span>
+                    </SidebarMenuButton>
+                </Link>
+                </SidebarMenuItem>
+            ))}
+        </SidebarMenu>
       </SidebarFooter>
     </Sidebar>
   );

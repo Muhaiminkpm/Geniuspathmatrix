@@ -2,105 +2,186 @@
 
 import { AppHeader } from '@/components/layout/app-header';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { ArrowRight, Bot, CheckSquare, Compass, Goal } from 'lucide-react';
 import Link from 'next/link';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import { chartData } from '@/lib/data';
 
 export default function DashboardPage() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <AppHeader title="Home" showAuthButtons />
-      <main className="flex-1 p-4 md:p-6 lg:p-8 space-y-8 bg-background">
-        <div className="max-w-7xl mx-auto">
-            <div className="space-y-4 text-center mb-12">
-            <h2 className="text-4xl font-bold font-headline tracking-tight">Welcome to Your Career Journey</h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-                Path-GeniX™ is here to guide you through a structured, personalized, and metacognitive career discovery journey. Let&apos;s start building your future, today.
-            </p>
-            <Button asChild size="lg">
-                <Link href="/assessment">
-                Begin Your Journey <ArrowRight className="ml-2" />
-                </Link>
-            </Button>
-            </div>
-
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="flex flex-col">
-                <CardHeader>
+      <AppHeader title="Dashboard" />
+      <main className="flex-1 space-y-8 bg-background p-4 md:p-6 lg:p-8">
+        <div className="mx-auto grid max-w-7xl gap-8">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardHeader>
                 <div className="flex items-center gap-4">
-                    <CheckSquare className="h-8 w-8 text-primary" />
-                    <CardTitle className="font-headline text-xl">InsightX Assessment</CardTitle>
+                  <CheckSquare className="h-8 w-8 text-primary" />
+                  <CardTitle className="font-headline text-lg">
+                    InsightX Assessment
+                  </CardTitle>
                 </div>
-                </CardHeader>
-                <CardContent className="flex-grow">
+              </CardHeader>
+              <CardContent className="flex-grow">
                 <CardDescription>
-                    Understand who you are. Take our scientific diagnostic tests to uncover your personality, interests, and skills.
+                  Start with our diagnostic tests to uncover your profile.
                 </CardDescription>
-                </CardContent>
-                <CardContent>
-                    <Button variant="ghost" asChild className="p-0 h-auto">
-                        <Link href="/assessment">Start Assessment <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                    </Button>
-                </CardContent>
+              </CardContent>
+              <CardFooter>
+                <Button variant="ghost" asChild className="h-auto p-0">
+                  <Link href="/assessment">
+                    Take Assessment <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardFooter>
             </Card>
 
-            <Card className="flex flex-col">
-                <CardHeader>
+            <Card>
+              <CardHeader>
                 <div className="flex items-center gap-4">
-                    <Compass className="h-8 w-8 text-primary" />
-                    <CardTitle className="font-headline text-xl">PathXplore Career</CardTitle>
+                  <Compass className="h-8 w-8 text-primary" />
+                  <CardTitle className="font-headline text-lg">
+                    PathXplore Career
+                  </CardTitle>
                 </div>
-                </CardHeader>
-                <CardContent className="flex-grow">
+              </CardHeader>
+              <CardContent className="flex-grow">
                 <CardDescription>
-                    Explore careers that truly fit. Our AI engine matches your profile to the top 5 career options.
+                  Explore the top 5 career options that fit you.
                 </CardDescription>
-                </CardContent>
-                <CardContent>
-                    <Button variant="ghost" asChild className="p-0 h-auto">
-                        <Link href="#">Explore Careers <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                    </Button>
-                </CardContent>
+              </CardContent>
+              <CardFooter>
+                <Button variant="ghost" asChild className="h-auto p-0">
+                  <Link href="#">
+                    Explore Careers <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardFooter>
             </Card>
 
-            <Card className="flex flex-col">
-                <CardHeader>
+            <Card>
+              <CardHeader>
                 <div className="flex items-center gap-4">
-                    <Goal className="h-8 w-8 text-primary" />
-                    <CardTitle className="font-headline text-xl">GoalMint Planner</CardTitle>
+                  <Goal className="h-8 w-8 text-primary" />
+                  <CardTitle className="font-headline text-lg">
+                    GoalMint Planner
+                  </CardTitle>
                 </div>
-                </CardHeader>
-                <CardContent className="flex-grow">
+              </CardHeader>
+              <CardContent className="flex-grow">
                 <CardDescription>
-                    Design your SMART career plan. Convert your chosen career path into actionable 1, 3, and 5-year plans.
+                  Design your SMART career action plan for success.
                 </CardDescription>
-                </CardContent>
-                <CardContent>
-                     <Button variant="ghost" asChild className="p-0 h-auto">
-                        <Link href="/goals">Plan Your Goals <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                    </Button>
-                </CardContent>
+              </CardContent>
+              <CardFooter>
+                <Button variant="ghost" asChild className="h-auto p-0">
+                  <Link href="/goals">
+                    Plan Your Goals <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardFooter>
             </Card>
 
-            <Card className="flex flex-col">
-                <CardHeader>
+            <Card>
+              <CardHeader>
                 <div className="flex items-center gap-4">
-                    <Bot className="h-8 w-8 text-primary" />
-                    <CardTitle className="font-headline text-xl">MentorSuite AI</CardTitle>
+                  <Bot className="h-8 w-8 text-primary" />
+                  <CardTitle className="font-headline text-lg">
+                    MentorSuite AI
+                  </CardTitle>
                 </div>
-                </CardHeader>
-                <CardContent className="flex-grow">
+              </CardHeader>
+              <CardContent className="flex-grow">
                 <CardDescription>
-                    Grow with expert guidance. Chat with our AI Mentor to get reflective questions and career advice.
+                  Chat with our AI Mentor for reflective questions.
                 </CardDescription>
-                </CardContent>
-                <CardContent>
-                     <Button variant="ghost" asChild className="p-0 h-auto">
-                        <Link href="#">Chat with Mentor <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                    </Button>
-                </CardContent>
+              </CardContent>
+              <CardFooter>
+                <Button variant="ghost" asChild className="h-auto p-0">
+                  <Link href="#">
+                    Chat with Mentor <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </CardFooter>
             </Card>
-            </div>
+          </div>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="font-headline">Your Progress</CardTitle>
+                <CardDescription>
+                  Here is a summary of your skills assessment.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart
+                    data={chartData}
+                    margin={{ top: 5, right: 20, left: -10, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" fill="hsl(var(--primary))" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle className="font-headline">Next Steps</CardTitle>
+                <CardDescription>
+                  Complete your journey to unlock your full potential.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm font-medium">
+                    <span>Overall Progress</span>
+                    <span>25%</span>
+                  </div>
+                  <Progress value={25} />
+                </div>
+                <div className="space-y-2 text-sm text-muted-foreground">
+                  <p>
+                    <span className="font-semibold text-foreground">
+                      Completed:
+                    </span>{' '}
+                    InsightX Assessment
+                  </p>
+                  <p>
+                    <span className="font-semibold text-foreground">
+                      Next up:
+                    </span>{' '}
+                    PathXplore Career
+                  </p>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button className="w-full">Continue Journey</Button>
+              </CardFooter>
+            </Card>
+          </div>
         </div>
       </main>
     </div>
