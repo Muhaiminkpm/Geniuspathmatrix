@@ -34,7 +34,7 @@ const assessmentSections = [
   {
     id: 'cognitive',
     title: 'Cognitive Capability + Skill Mapping',
-    questions: 20,
+    questions: 20, // 10 cognitive + 10 skill mapping
     time: 20,
     instructions: 'This section has two parts. First, answer cognitive ability questions. Then, self-assess your skills.',
   },
@@ -50,25 +50,25 @@ const assessmentSections = [
 const totalSteps = assessmentSections.length + 1; // +1 for the initial instructions screen
 
 const ratingLabels = {
-  'personality': [
+  personality: [
     { value: '1', label: 'Strongly Disagree' },
     { value: '2', label: 'Disagree' },
     { value: '3', label: 'Agree' },
     { value: '4', label: 'Strongly Agree' },
   ],
-  'interest': [
+  interest: [
     { value: '1', label: 'Strongly Dislike' },
     { value: '2', label: 'Dislike' },
     { value: '3', label: 'Like' },
     { value: '4', label: 'Strongly Like' },
   ],
-  'skillMapping': [
+  skillMapping: [
     { value: '1', label: 'Not at all confident' },
     { value: '2', label: 'Slightly confident' },
     { value: '3', label: 'Confident' },
     { value: '4', label: 'Very confident' },
   ],
-  'cvq': [
+  cvq: [
     { value: '1', label: 'Strongly Disagree' },
     { value: '2', label: 'Disagree' },
     { value: '3', label: 'Agree' },
@@ -414,10 +414,10 @@ export default function AssessmentPage() {
       
       switch(section.id) {
         case 'personality':
-          questionsContent = assessmentQuestions.personality.map(q => 
+          questionsContent = assessmentQuestions.personality.map((q, i) => 
              <QuestionCard 
                 key={q.id}
-                question={q}
+                question={{ ...q, question: `${i + 1}. ${q.question}`}}
                 options={ratingLabels.personality}
                 selectedValue={answers.personality[q.id]}
                 onChange={(v) => handleAnswerChange('personality', q.id, v)} 
@@ -425,10 +425,10 @@ export default function AssessmentPage() {
           );
           break;
         case 'interest':
-          questionsContent = assessmentQuestions.interest.map(q => 
+          questionsContent = assessmentQuestions.interest.map((q, i) => 
             <QuestionCard 
                key={q.id}
-               question={q}
+               question={{ ...q, question: `${i + 1}. ${q.question}`}}
                options={ratingLabels.interest}
                selectedValue={answers.interest[q.id]}
                onChange={(v) => handleAnswerChange('interest', q.id, v)} 
@@ -458,7 +458,7 @@ export default function AssessmentPage() {
                   {assessmentQuestions.skillMapping.map((q, i) =>
                     <QuestionCard 
                       key={q.id}
-                      question={{...q, question: `${i+11}. ${q.question}`}}
+                      question={{...q, question: `${i + assessmentQuestions.cognitive.length + 1}. ${q.question}`}}
                       options={ratingLabels.skillMapping}
                       selectedValue={answers.selfReportedSkills[q.id]}
                       onChange={(v) => handleAnswerChange('selfReportedSkills', q.id, v)} 
@@ -475,18 +475,23 @@ export default function AssessmentPage() {
             if (!cvqSections[q.section]) cvqSections[q.section] = [];
             cvqSections[q.section].push(q);
           });
+          
+          let questionCounter = 0;
           questionsContent = Object.entries(cvqSections).map(([sectionTitle, qs]) => (
             <div key={sectionTitle} className="space-y-6">
               <h3 className="font-bold text-xl mb-4">{sectionTitle}</h3>
-              {qs.map(q =>
-                <QuestionCard 
-                  key={q.id}
-                  question={q}
-                  options={ratingLabels.cvq}
-                  selectedValue={answers.cvq[q.id]}
-                  onChange={(v) => handleAnswerChange('cvq', q.id, v)} 
-                />
-              )}
+              {qs.map(q => {
+                questionCounter++;
+                return (
+                  <QuestionCard 
+                    key={q.id}
+                    question={{ ...q, question: `${questionCounter}. ${q.question}`}}
+                    options={ratingLabels.cvq}
+                    selectedValue={answers.cvq[q.id]}
+                    onChange={(v) => handleAnswerChange('cvq', q.id, v)} 
+                  />
+                );
+              })}
             </div>
           ));
           break;
