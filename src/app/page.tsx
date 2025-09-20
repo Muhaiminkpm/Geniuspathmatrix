@@ -46,6 +46,7 @@ export default function Home() {
             <div className="mx-auto max-w-7xl space-y-12">
                 <div className="space-y-4">
                     <h1 className="text-4xl font-bold font-headline tracking-tight text-foreground">Welcome to Your Career Journey</h1>
+                    <p className="text-xl font-medium text-primary">Your blueprint for career excellence</p>
                     <p className="text-lg text-muted-foreground max-w-3xl">
                         Path-GeniX™ is here to guide you through a structured, personalized, and metacognitive career discovery journey. Let's start building your future, today.
                     </p>
