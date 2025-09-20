@@ -20,25 +20,25 @@ const assessmentSections = [
   {
     title: 'Personality Assessment',
     questions: 30,
-    time: 20,
+    time: 15,
     instructions: 'Rate how much each statement describes you on a scale of 1 (Strongly Disagree) to 5 (Strongly Agree).',
   },
   {
     title: 'Interest Inventory',
     questions: 20,
-    time: 15,
+    time: 10,
     instructions: 'Indicate how much you would enjoy performing each activity on a scale of 1 (Strongly Dislike) to 5 (Strongly Like).',
   },
   {
     title: 'Cognitive Capability + Skill Mapping',
-    questions: 50,
-    time: 30,
-    instructions: 'This section has two parts. First, answer 30 cognitive ability questions (these require quick and accurate thinking). Then, self-assess your skills with 20 skill mapping questions.',
+    questions: 20,
+    time: 20,
+    instructions: 'This section has two parts. First, answer cognitive ability questions. Then, self-assess your skills.',
   },
   {
     title: 'Contextual Viability Quotient (CVQ™)',
     questions: 20,
-    time: 25,
+    time: 15,
     instructions: 'Rate how much you agree with each statement on a scale of 1 (Strongly Disagree) to 5 (Strongly Agree) for your top career choice.',
   },
 ];
@@ -135,26 +135,6 @@ const assessmentQuestions = {
       { id: 'cog8', question: 'If all students are learners, and all learners are curious, then all students are curious. True or False?', options: ['True', 'False'] },
       { id: 'cog9', question: 'Which of the following is the next logical step in the pattern: AB, CD, EF, GH, ?', options: ['IJ', 'KL', 'JK', 'HI'] },
       { id: 'cog10', question: 'If you rearrange the letters \'TINAP\', you would have the name of a(n):', options: ['Animal', 'Fruit', 'Color', 'Country'] },
-      { id: 'cog11', question: 'A recipe calls for 2 cups of flour for 8 cookies. How much flour is needed for 16 cookies?', options: ['2 cups', '3 cups', '4 cups', '6 cups'] },
-      { id: 'cog12', question: 'Which word is the opposite of \'Brave\': Fearful, Strong, Bold, Heroic?', options: ['Fearful', 'Strong', 'Bold', 'Heroic'] },
-      { id: 'cog13', question: 'If a baker can decorate 12 cakes in 3 hours, how many cakes can they decorate in 1 hour?', options: ['3 cakes', '4 cakes', '6 cakes', '12 cakes'] },
-      { id: 'cog14', question: 'Complete the sequence: Z, X, V, T, ?', options: ['S', 'U', 'R', 'Q'] },
-      { id: 'cog15', question: 'Which of these is an even number: 5, 7, 9, 10?', options: ['5', '7', '9', '10'] },
-      { id: 'cog16', question: 'Rahul is taller than Priya. Priya is taller than Sameer. Is Rahul taller than Sameer?', options: ['Yes', 'No', 'Cannot Say'] },
-      { id: 'cog17', question: 'Which word is the odd one out: Happy, Sad, Angry, Excited, Sleepy?', options: ['Happy', 'Sad', 'Angry', 'Excited', 'Sleepy'] },
-      { id: 'cog18', question: 'If 3 friends share 15 chocolates equally, how many chocolates does each friend get?', options: ['3', '5', '10', '15'] },
-      { id: 'cog19', question: 'Which set of letters completes the pattern: AZ, BY, CX, DW, ?', options: ['EV', 'FU', 'GT', 'HS'] },
-      { id: 'cog20', question: 'What is 25% of 80?', options: ['10', '20', '25', '40'] },
-      { id: 'cog21', question: 'If \'CAT\' is coded as \'3120\', how would \'DOG\' be coded?', options: ['4157', '4158', '4159', '41510'] },
-      { id: 'cog22', question: 'Choose the word that is most similar in meaning to \'Ancient\':', options: ['Modern', 'Old', 'New', 'Fast'] },
-      { id: 'cog23', question: 'A square has a side length of 5 cm. What is its perimeter?', options: ['10 cm', '15 cm', '20 cm', '25 cm'] },
-      { id: 'cog24', question: 'Which number completes the series: 10, 9, 7, 4, ?', options: ['0', '1', '2', '3'] },
-      { id: 'cog25', question: 'If \'North\' is \'West\', then \'East\' is \'____\'?', options: ['North', 'South', 'East', 'West'] },
-      { id: 'cog26', question: 'Find the odd one out: Lion, Tiger, Elephant, Wolf, Cheetah.', options: ['Lion', 'Tiger', 'Elephant', 'Wolf', 'Cheetah'] },
-      { id: 'cog27', question: 'A class has 30 students. 2/3 of them are boys. How many girls are there?', options: ['10', '15', '20', '25'] },
-      { id: 'cog28', question: 'Which letter comes next in the sequence: C, F, I, L, ?', options: ['M', 'N', 'O', 'P'] },
-      { id: 'cog29', question: 'If yesterday was Monday, what day is tomorrow?', options: ['Tuesday', 'Wednesday', 'Thursday', 'Friday'] },
-      { id: 'cog30', question: 'What is the value of 52−32?', options: ['4', '8', '16', '34'] },
   ],
   skillMapping: [
       { id: 'sm1', question: 'I am confident sharing my ideas in front of my class.' },
@@ -167,16 +147,6 @@ const assessmentQuestions = {
       { id: 'sm8', question: 'I can adjust easily when plans change unexpectedly.' },
       { id: 'sm9', question: 'I am good at writing clear and persuasive essays.' },
       { id: 'sm10', question: 'I feel comfortable giving presentations or speeches.' },
-      { id: 'sm11', question: 'I am good at managing my time effectively to meet deadlines.' },
-      { id: 'sm12', question: 'I can work well under pressure and stay focused.' },
-      { id: 'sm13', question: 'I am resourceful when faced with limited tools or information.' },
-      { id: 'sm14', question: 'I am good at finding solutions to problems independently.' },
-      { id: 'sm15', question: 'I can effectively manage multiple tasks at once.' },
-      { id: 'sm16', question: 'I am comfortable learning and adapting to new technologies quickly.' },
-      { id: 'sm17', question: 'I am good at analyzing information to make decisions.' },
-      { id: 'sm18', question: 'I can clearly express my ideas in writing.' },
-      { id: 'sm19', question: 'I am skilled at resolving conflicts or disagreements in a group.' },
-      { id: 'sm20', question: 'I am comfortable taking initiative and leading a task.' },
   ],
   cvq: [
     { id: 'cvq1', section: 'Cultural & Societal Compatibility', question: 'I am free to pursue any career, regardless of family traditions or expectations.' },
@@ -188,7 +158,7 @@ const assessmentQuestions = {
     { id: 'cvq7', section: 'Language Readiness (Current + Future)', question: 'I understand lectures, videos, or tutorials in English without needing translations.' },
     { id: 'cvq8', section: 'Language Readiness (Current + Future)', question: 'I believe I can become fluent in English or another required language within 2 years.' },
     { id: 'cvq9', section: 'Language Readiness (Current + Future)', question: 'I would avoid certain careers due to language limitations. (reverse scored)' },
-    { id: 'cvq10', section: 'Language Readiness (Current + Future)', question: 'I am confident in my ability to clear language-based entrance tests or interviews.' },
+    { id: 'cvq10', 'section': 'Language Readiness (Current + Future)', question: 'I am confident in my ability to clear language-based entrance tests or interviews.' },
     { id: 'cvq11', section: 'Digital Access & Tech Confidence', question: 'I have regular access to a smartphone with internet.' },
     { id: 'cvq12', section: 'Digital Access & Tech Confidence', question: 'I have access to a laptop or desktop at least 3 days per week.' },
     { id: 'cvq13', section: 'Digital Access & Tech Confidence', question: 'I feel confident using online learning platforms and productivity tools.' },
@@ -442,7 +412,7 @@ export default function AssessmentPage() {
                  <h4 className="font-bold text-lg mb-4">Part B: Skill Mapping</h4>
                  <div className="space-y-6">
                   {assessmentQuestions.skillMapping.map((q, i) =>
-                    <LikertScale key={q.id} id={q.id} question={`${i+31}. ${q.question}`} labels={ratingLabels['confidence-1-5']} onChange={(v) => handleValueChange('selfReportedSkills', formData.selfReportedSkills + ` ${q.id}:${v}`)} vertical={true} />
+                    <LikertScale key={q.id} id={q.id} question={`${i+11}. ${q.question}`} labels={ratingLabels['confidence-1-5']} onChange={(v) => handleValueChange('selfReportedSkills', formData.selfReportedSkills + ` ${q.id}:${v}`)} vertical={true} />
                   )}
                  </div>
               </div>
@@ -494,8 +464,8 @@ export default function AssessmentPage() {
                     <h3 className="font-semibold mb-2">General Instructions:</h3>
                     <ul className="list-disc list-inside text-sm text-muted-foreground space-y-2">
                         <li>This assessment is designed to help you understand your unique personality, interests, and cognitive strengths. There are no right or wrong answers. Answer honestly based on how you truly feel or typically behave.</li>
-                        <li>The assessment consists of 120 questions divided into 4 sections.</li>
-                        <li>The total time allotted for the assessment is 90 minutes.</li>
+                        <li>The assessment consists of 90 questions divided into 4 sections.</li>
+                        <li>The total time allotted for the assessment is 60 minutes.</li>
                         <li>Each section has a specific time limit. You must complete all questions within a section before its time limit expires or you move to the next section.</li>
                         <li>Once you complete a section and move to the next, you will not be able to go back to previous sections.</li>
                         <li>Read each question carefully.</li>
@@ -525,7 +495,7 @@ export default function AssessmentPage() {
                 </Alert>
             </CardContent>
              <CardFooter>
-                <Button onClick={handleNext} className="w-full" size="lg">Start Assessment</Button>
+                <Button onClick={handleNext} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-3 px-6 rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105" size="lg">Start Assessment</Button>
             </CardFooter>
         </Card>
     );
@@ -577,5 +547,3 @@ export default function AssessmentPage() {
     </div>
   );
 }
-
-    
