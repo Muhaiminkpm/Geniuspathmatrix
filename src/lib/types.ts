@@ -14,7 +14,19 @@ export interface Goal {
 export interface Mentor {
   id: string;
   name: string;
-  title: string;
+  title:string;
   specialties: string[];
   imageId: string;
+}
+
+export interface CareerPath {
+    id: string;
+    title: string;
+    description: string;
+    matchReasons: string[];
+    avgSalary: string;
+    jobOutlook: string;
+    minEducation: string;
+    responsibilities: string[];
+    skillMatch: { skill: string; match: number }[];
 }
