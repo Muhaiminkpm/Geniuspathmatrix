@@ -21,13 +21,13 @@ const assessmentSections = [
     title: 'Personality Assessment',
     questions: 30,
     time: 15,
-    instructions: 'Rate how much each statement describes you on a scale of 1 (Strongly Disagree) to 5 (Strongly Agree).',
+    instructions: 'Rate how much each statement describes you on a scale of 1 (Disagree) to 4 (Agree).',
   },
   {
     title: 'Interest Inventory',
     questions: 20,
     time: 10,
-    instructions: 'Indicate how much you would enjoy performing each activity on a scale of 1 (Strongly Dislike) to 5 (Strongly Like).',
+    instructions: 'Indicate how much you would enjoy performing each activity on a scale of 1 (Dislike) to 4 (Like).',
   },
   {
     title: 'Cognitive Capability + Skill Mapping',
@@ -39,33 +39,30 @@ const assessmentSections = [
     title: 'Contextual Viability Quotient (CVQ™)',
     questions: 20,
     time: 15,
-    instructions: 'Rate how much you agree with each statement on a scale of 1 (Strongly Disagree) to 5 (Strongly Agree) for your top career choice.',
+    instructions: 'Rate how much you agree with each statement on a scale of 1 (Disagree) to 4 (Agree) for your top career choice.',
   },
 ];
 
 const totalSteps = assessmentSections.length + 1; // +1 for the initial instructions screen
 
 const ratingLabels = {
-  '1-5': [
+  '1-4': [
     { value: '1', label: 'Strongly Disagree' },
     { value: '2', label: 'Disagree' },
-    { value: '3', label: 'Neutral' },
-    { value: '4', label: 'Agree' },
-    { value: '5', label: 'Strongly Agree' },
+    { value: '3', label: 'Agree' },
+    { value: '4', label: 'Strongly Agree' },
   ],
-  'like-1-5': [
+  'like-1-4': [
     { value: '1', label: 'Strongly Dislike' },
     { value: '2', label: 'Dislike' },
-    { value: '3', label: 'Neutral' },
-    { value: '4', label: 'Like' },
-    { value: '5', label: 'Strongly Like' },
+    { value: '3', label: 'Like' },
+    { value: '4', label: 'Strongly Like' },
   ],
-  'confidence-1-5': [
-    { value: '1', label: 'Not at all confident/proficient' },
-    { value: '2', label: '' },
-    { value: '3', label: '' },
-    { value: '4', label: '' },
-    { value: '5', label: 'Very confident/proficient' },
+  'confidence-1-4': [
+    { value: '1', label: 'Not at all confident' },
+    { value: '2', label: 'Slightly confident' },
+    { value: '3', label: 'Confident' },
+    { value: '4', label: 'Very confident' },
   ],
 };
 
@@ -389,12 +386,12 @@ export default function AssessmentPage() {
       switch(sectionIndex) {
         case 0: // Personality
           questions = assessmentQuestions.personality.map(q => 
-             <LikertScale key={q.id} id={q.id} question={q.question} labels={ratingLabels['1-5']} onChange={(v) => handleValueChange('personality', formData.personality + ` ${q.id}:${v}`)} />
+             <LikertScale key={q.id} id={q.id} question={q.question} labels={ratingLabels['1-4']} onChange={(v) => handleValueChange('personality', formData.personality + ` ${q.id}:${v}`)} />
           );
           break;
         case 1: // Interest
           questions = assessmentQuestions.interest.map(q => 
-             <LikertScale key={q.id} id={q.id} question={q.question} labels={ratingLabels['like-1-5']} onChange={(v) => handleValueChange('interest', formData.interest + ` ${q.id}:${v}`)} />
+             <LikertScale key={q.id} id={q.id} question={q.question} labels={ratingLabels['like-1-4']} onChange={(v) => handleValueChange('interest', formData.interest + ` ${q.id}:${v}`)} />
           );
           break;
         case 2: // Cognitive + Skill
@@ -412,7 +409,7 @@ export default function AssessmentPage() {
                  <h4 className="font-bold text-lg mb-4">Part B: Skill Mapping</h4>
                  <div className="space-y-6">
                   {assessmentQuestions.skillMapping.map((q, i) =>
-                    <LikertScale key={q.id} id={q.id} question={`${i+11}. ${q.question}`} labels={ratingLabels['confidence-1-5']} onChange={(v) => handleValueChange('selfReportedSkills', formData.selfReportedSkills + ` ${q.id}:${v}`)} vertical={true} />
+                    <LikertScale key={q.id} id={q.id} question={`${i+11}. ${q.question}`} labels={ratingLabels['confidence-1-4']} onChange={(v) => handleValueChange('selfReportedSkills', formData.selfReportedSkills + ` ${q.id}:${v}`)} vertical={true} />
                   )}
                  </div>
               </div>
@@ -429,7 +426,7 @@ export default function AssessmentPage() {
             <div key={sectionTitle} className="space-y-6">
               <h4 className="font-bold text-lg">{sectionTitle}</h4>
               {qs.map(q =>
-                <LikertScale key={q.id} id={q.id} question={q.question} labels={ratingLabels['1-5']} onChange={(v) => handleValueChange('cvq', formData.cvq + ` ${q.id}:${v}`)} />
+                <LikertScale key={q.id} id={q.id} question={q.question} labels={ratingLabels['1-4']} onChange={(v) => handleValueChange('cvq', formData.cvq + ` ${q.id}:${v}`)} />
               )}
             </div>
           ));
