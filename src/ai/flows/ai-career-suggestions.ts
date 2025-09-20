@@ -22,15 +22,15 @@ const SuggestCareersInputSchema = z.object({
   selfReportedSkills: z
     .string()
     .describe('The self-reported skills of the student.'),
-  cvq: z.string().describe('The Contextual Viability Quotient results.'),
+  cvq: z.string().describe('The Contextual Viability Quotient results, which includes financial, geographic, and cultural constraints. These are important filters.'),
 });
 export type SuggestCareersInput = z.infer<typeof SuggestCareersInputSchema>;
 
 const CareerSuggestionSchema = z.object({
   careerName: z.string().describe('The name of the suggested career.'),
   careerDescription: z.string().describe('A brief description of the career.'),
-  swotAnalysis: z.string().describe('A SWOT analysis of the career path.'),
-  matchExplanation: z.string().describe("An explanation of why this career is a good match based on the user's assessment results (traits and constraints)."),
+  swotAnalysis: z.string().describe('A detailed SWOT analysis of the career path for the student, considering their profile. Use bullet points for each section.'),
+  matchExplanation: z.string().describe("An explanation of why this career is a good match based on the user's assessment results (personality, interests, skills) and constraints (CVQ)."),
 });
 
 const SuggestCareersOutputSchema = z.array(CareerSuggestionSchema).min(10).describe('A list of at least 10 career suggestions based on the input.');
@@ -46,13 +46,19 @@ const suggestCareersPrompt = ai.definePrompt({
   output: {schema: SuggestCareersOutputSchema},
   prompt: `You are an AI career advisor. Based on the following assessment results, suggest at least 10 potential careers that align with the student's profile.
 
+Crucially, you must use the CVQ results as a filter. If the CVQ indicates significant constraints (e.g., financial limitations, unwillingness to relocate), do not suggest careers that would be impractical.
+
 Personality: {{{personality}}}
 Interest: {{{interest}}}
 Cognitive Abilities: {{{cognitiveAbilities}}}
 Self-Reported Skills: {{{selfReportedSkills}}}
-CVQ: {{{cvq}}}
+CVQ (Constraints): {{{cvq}}}
 
-For each suggestion, provide the career name, a brief description, a SWOT analysis, and a detailed explanation of why it's a good match, referencing the specific traits from the assessments and considering any constraints.
+For each suggestion, provide:
+1. The career name.
+2. A brief description.
+3. A detailed SWOT analysis (Strengths, Weaknesses, Opportunities, Threats) for the student in this career.
+4. A detailed explanation of why it's a good match, referencing specific traits from the assessments AND how it aligns with the constraints from the CVQ.
 `, 
 });
 

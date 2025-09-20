@@ -14,7 +14,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { CareerSuggestion } from '@/lib/types';
-import { ArrowRight, Download, FileText, Goal } from 'lucide-react';
+import { ArrowRight, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { LoadingSpinner } from '@/components/loading-spinner';
@@ -49,7 +49,7 @@ function CareerCard({
         </div>
         <div>
           <h4 className="font-semibold mb-2 text-sm">SWOT Analysis:</h4>
-          <div className="text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: career.swotAnalysis.replace(/\\n/g, '<br />') }}></div>
+          <div className="text-sm text-muted-foreground prose" dangerouslySetInnerHTML={{ __html: career.swotAnalysis.replace(/\n/g, '<br />') }}></div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-between">
