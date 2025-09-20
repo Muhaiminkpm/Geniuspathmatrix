@@ -299,23 +299,34 @@ function Timer({ minutes, onTimeUp }: { minutes: number; onTimeUp: () => void })
   );
 }
 
-
 function LikertScale({ id, question, labels, onChange, vertical = false }: { id: string; question: string; labels: {value: string; label: string}[], onChange: (value: string) => void, vertical?: boolean}) {
-  const showLabels = labels.some(l => l.label);
   return (
     <div key={id} className="space-y-3">
       <p>{question}</p>
-      <RadioGroup onValueChange={onChange} className="flex justify-between items-center">
-        {showLabels && !vertical && <Label className="text-left w-1/5">{labels[0].label}</Label>}
-        <div className={`flex ${vertical ? 'flex-col space-y-2' : 'flex-row justify-center items-center gap-4'}`}>
-          {labels.map(l => (
-            <div key={l.value} className="flex flex-col items-center gap-1">
-              <RadioGroupItem value={l.value} id={`${id}-${l.value}`} />
-              <Label htmlFor={`${id}-${l.value}`} className={`text-xs ${vertical ? 'text-left': ''}`}>{vertical ? l.label : l.value}</Label>
+      <RadioGroup onValueChange={onChange} className="flex flex-col sm:flex-row justify-between items-start sm:items-center space-y-2 sm:space-y-0">
+        {vertical ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full">
+                {labels.map(l => (
+                    <div key={l.value} className="flex items-center space-x-2">
+                        <RadioGroupItem value={l.value} id={`${id}-${l.value}`} />
+                        <Label htmlFor={`${id}-${l.value}`}>{l.label}</Label>
+                    </div>
+                ))}
             </div>
-          ))}
-        </div>
-        {showLabels && !vertical && <Label className="text-right w-1/5">{labels[labels.length-1].label}</Label>}
+        ) : (
+          <>
+            <Label className="w-full text-left sm:w-1/5">{labels[0].label}</Label>
+            <div className="flex justify-center items-center gap-4">
+              {labels.map(l => (
+                <div key={l.value} className="flex flex-col items-center gap-1">
+                  <RadioGroupItem value={l.value} id={`${id}-${l.value}`} />
+                  <Label htmlFor={`${id}-${l.value}`} className="text-xs">{l.value}</Label>
+                </div>
+              ))}
+            </div>
+            <Label className="w-full text-right sm:w-1/5">{labels[labels.length-1].label}</Label>
+          </>
+        )}
       </RadioGroup>
     </div>
   );
@@ -325,7 +336,7 @@ function MultipleChoice({ id, question, options, onChange }: { id: string; quest
   return (
     <div key={id} className="space-y-3">
       <p>{question}</p>
-      <RadioGroup onValueChange={onChange} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <RadioGroup onValueChange={onChange} className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {options.map((option, i) => (
           <div key={i} className="flex items-center space-x-2">
             <RadioGroupItem value={option} id={`${id}-${i}`} />
