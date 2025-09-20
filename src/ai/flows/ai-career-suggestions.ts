@@ -44,7 +44,9 @@ const suggestCareersPrompt = ai.definePrompt({
   name: 'suggestCareersPrompt',
   input: {schema: SuggestCareersInputSchema},
   output: {schema: SuggestCareersOutputSchema},
-  prompt: `You are a pragmatic and experienced AI career advisor. Your primary goal is to suggest reliable, in-demand careers with strong long-term market viability. Based on the following assessment results, suggest at least 10 potential careers that align with the student's profile.
+  prompt: `You are a pragmatic and experienced AI career advisor with a deep understanding of future job market trends. Your primary goal is to suggest reliable, in-demand, and future-proof careers with strong long-term market viability. You must consider the rise of AI and automation, and suggest roles that are either newly emerging due to these trends or are time-tested professions that require skills less likely to be automated (e.g., complex problem-solving, creativity, emotional intelligence, strategy).
+
+Based on the following assessment results, suggest at least 10 potential careers that align with the student's profile.
 
 Crucially, you must use the CVQ results as a filter. If the CVQ indicates significant constraints (e.g., financial limitations, unwillingness to relocate), do not suggest careers that would be impractical.
 
