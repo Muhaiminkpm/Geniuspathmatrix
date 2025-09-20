@@ -35,7 +35,7 @@ export default function DashboardPage() {
             <CardContent>
               <Button asChild>
                 <Link href="/assessment">
-                  Start InsightX Assessment <ArrowRight className="ml-2" />
+                  Start Path-GeniX Assessment <ArrowRight className="ml-2" />
                 </Link>
               </Button>
             </CardContent>

@@ -258,7 +258,7 @@ export default function AssessmentPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <AppHeader title="InsightX Assessment" />
+      <AppHeader title="Path-GeniX Assessment" />
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         {isLoading ? (
            <div className="flex flex-col items-center justify-center h-full text-center space-y-4">

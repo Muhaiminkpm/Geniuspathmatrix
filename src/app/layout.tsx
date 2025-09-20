@@ -4,7 +4,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
-  title: 'CareerCompass',
+  title: 'Path-GeniX',
   description: 'Guiding students through a structured, four-step career discovery journey.',
 };
 

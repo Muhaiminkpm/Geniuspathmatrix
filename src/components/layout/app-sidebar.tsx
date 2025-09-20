@@ -41,7 +41,7 @@ export function AppSidebar() {
               <Compass className="text-primary" />
             </Link>
           </Button>
-          <span className="font-headline text-lg font-semibold">CareerCompass</span>
+          <span className="font-headline text-lg font-semibold">Path-GeniX</span>
         </div>
       </SidebarHeader>
       <SidebarContent className="p-2">

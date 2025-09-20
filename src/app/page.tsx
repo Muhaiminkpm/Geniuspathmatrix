@@ -10,7 +10,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col">
       <header className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        <h1 className="text-2xl font-bold font-headline text-primary">CareerCompass</h1>
+        <h1 className="text-2xl font-bold font-headline text-primary">Path-GeniX</h1>
       </header>
       <section className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
         <div className="space-y-6 text-center lg:text-left">
@@ -18,7 +18,7 @@ export default function Home() {
             Find Your Future, Today.
           </h2>
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto lg:mx-0">
-            CareerCompass guides you through a structured career discovery journey. Uncover your strengths, explore paths, and build a plan for success.
+            Path-GeniX guides you through a structured career discovery journey. Uncover your strengths, explore paths, and build a plan for success.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
             <Button asChild size="lg">
@@ -46,7 +46,7 @@ export default function Home() {
         </div>
       </section>
       <footer className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-muted-foreground text-sm">
-        <p>&copy; {new Date().getFullYear()} CareerCompass. All rights reserved.</p>
+        <p>&copy; {new Date().getFullYear()} Path-GeniX. All rights reserved.</p>
       </footer>
     </main>
   );
