@@ -41,7 +41,7 @@ const assessmentSections = [
   {
     id: 'cvq',
     title: 'Contextual Viability Quotient (CVQ™)',
-    questions: 20,
+    questions: 25,
     time: 15,
     instructions: 'Rate how much you agree with each statement on a scale of 1 (Disagree) to 4 (Agree) for your top career choice.',
   },
@@ -176,6 +176,11 @@ const assessmentQuestions = {
     { id: 'cvq18', section: 'Financial & Geographic Readiness', question: 'I am willing to apply for scholarships or part-time jobs to support my career goals.' },
     { id: 'cvq19', section: 'Financial & Geographic Readiness', question: 'I am willing to relocate to another city/state/country for education or work.' },
     { id: 'cvq20', section: 'Financial & Geographic Readiness', question: 'My family is likely to support me if relocation becomes necessary.' },
+    { id: 'cvq21', section: 'Parental & Familial Support', question: 'My parents have a specific career path in mind for me that differs from my interests.' },
+    { id: 'cvq22', section: 'Parental & Familial Support', question: 'My family considers job stability and a high salary to be the most important factors in a career.' },
+    { id: 'cvq23', section: 'Parental & Familial Support', question: 'I feel comfortable discussing my career aspirations openly with my parents.' },
+    { id: 'cvq24', section: 'Parental & Familial Support', question: 'My parents are actively involved in my educational and career planning.' },
+    { id: 'cvq25', section: 'Parental & Familial Support', question: 'My family would support my choice to pursue a non-traditional career path (e.g., in arts, entrepreneurship).' },
   ]
 };
 
@@ -317,10 +322,14 @@ export default function AssessmentPage() {
       const section = assessmentSections[sectionIndex];
       let questionsContent;
       let questionNumberOffset = 0;
-      if (sectionIndex > 0) {
-        for(let i=0; i<sectionIndex; i++) {
-          questionNumberOffset += assessmentSections[i].questions;
+      for(let i=0; i<sectionIndex; i++) {
+        let questionCount = 0;
+        if (assessmentSections[i].id === 'cvq') {
+          questionCount = 25; // Manually set for cvq with added questions
+        } else {
+          questionCount = assessmentSections[i].questions;
         }
+        questionNumberOffset += questionCount;
       }
       
       switch(section.id) {
@@ -432,6 +441,10 @@ export default function AssessmentPage() {
       );
     }
 
+    const totalQuestions = assessmentSections.reduce((total, section) => total + section.questions, 0);
+    const totalTime = assessmentSections.reduce((total, section) => total + section.time, 0);
+
+
     return (
         <Card>
             <CardHeader>
@@ -443,8 +456,8 @@ export default function AssessmentPage() {
                     <h3 className="font-semibold mb-2">General Instructions:</h3>
                     <ul className="list-disc list-inside text-sm text-muted-foreground space-y-2">
                         <li>This assessment is designed to help you understand your unique personality, interests, and cognitive strengths. There are no right or wrong answers. Answer honestly based on how you truly feel or typically behave.</li>
-                        <li>The assessment consists of 90 questions divided into 4 sections.</li>
-                        <li>The total time allotted for the assessment is 60 minutes.</li>
+                        <li>The assessment consists of {totalQuestions} questions divided into {assessmentSections.length} sections.</li>
+                        <li>The total time allotted for the assessment is {totalTime} minutes.</li>
                         <li>Each section has a specific time limit. You must complete all questions within a section before its time limit expires or you move to the next section.</li>
                         <li>Once you complete a section and move to the next, you will not be able to go back to previous sections.</li>
                         <li>Read each question carefully.</li>
