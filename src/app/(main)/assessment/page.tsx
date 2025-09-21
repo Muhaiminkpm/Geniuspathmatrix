@@ -580,13 +580,13 @@ export default function AssessmentPage() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline text-2xl">InsightX™ Assessment</CardTitle>
-                <CardDescription>For students of 13-19 age group: Discover Your Unique Potential</CardDescription>
+                <CardTitle className="font-headline text-2xl">Welcome to the InsightX™ Assessment</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
                 <div>
                     <h3 className="font-semibold mb-2">General Instructions:</h3>
                     <ul className="list-disc list-inside text-sm text-muted-foreground space-y-2">
+                        <li>For students of 13-19 age group: Discover Your Unique Potential</li>
                         <li>This assessment is designed to help you understand your unique personality, interests, and cognitive strengths. There are no right or wrong answers. Answer honestly based on how you truly feel or typically behave.</li>
                         <li>The assessment consists of {totalQuestions} questions divided into {assessmentSections.length} sections.</li>
                         <li>The total time allotted for the assessment is {totalTime} minutes.</li>
@@ -673,3 +673,5 @@ export default function AssessmentPage() {
     </div>
   );
 }
+
+    
