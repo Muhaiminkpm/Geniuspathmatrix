@@ -1,40 +1,46 @@
 
 'use client';
 
+import * as React from 'react';
 import { AppHeader } from '@/components/layout/app-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download } from 'lucide-react';
 import { format } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
 
-const reports = [
+const initialReports = [
     {
         id: 1,
         title: "InsightX Report",
-        date: new Date(),
         description: "A detailed breakdown of your personality, interests, and cognitive assessment results."
     },
     {
         id: 2,
         title: "PathXplore Report",
-        date: new Date(),
         description: "An in-depth analysis of your top career matches, including SWOT analysis and match explanations."
     },
     {
         id: 3,
         title: "GoalMint Planner",
-        date: new Date(),
         description: "Your complete 1, 3, and 5-year SMART goal roadmap for your chosen career path."
     },
     {
         id: 4,
         title: "Path-GeniX Career Mastery MatriX",
-        date: new Date(),
         description: "A comprehensive summary matrix of your entire journey, from assessment to goals."
     }
-];
+].map(report => ({ ...report, date: null as Date | null }));
+
 
 export default function ReportsPage() {
+  const [reports, setReports] = React.useState(initialReports);
+
+  React.useEffect(() => {
+    // Set dates on the client to avoid hydration mismatch
+    setReports(initialReports.map(report => ({ ...report, date: new Date() })));
+  }, []);
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <AppHeader title="Reports" />
@@ -50,7 +56,11 @@ export default function ReportsPage() {
                 <Card key={report.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                     <CardHeader>
                         <CardTitle className="font-headline">{report.title}</CardTitle>
-                        <CardDescription>Generated on {format(report.date, "PPP")}</CardDescription>
+                        {report.date ? (
+                            <CardDescription>Generated on {format(report.date, "PPP")}</CardDescription>
+                        ) : (
+                            <Skeleton className="h-4 w-32 mt-1" />
+                        )}
                     </CardHeader>
                     <CardContent className="p-6 pt-0 sm:pt-6">
                          <Button>
