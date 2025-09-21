@@ -11,6 +11,7 @@ import { getMentorResponse } from '@/lib/actions';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { cn } from '@/lib/utils';
 import type { Message } from '@/ai/flows/mentor-flow';
+import type { CareerSuggestion, GoalPlan } from '@/lib/types';
 
 
 export default function MentorsPage() {
@@ -22,7 +23,44 @@ export default function MentorsPage() {
   ]);
   const [input, setInput] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
+  const [studentProfile, setStudentProfile] = React.useState('');
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    // Load data from localStorage and construct the profile string
+    try {
+      const storedResults = localStorage.getItem('assessmentResults');
+      const storedGoals = localStorage.getItem('goalPlan');
+
+      let profile = "Student's Path-GeniX Profile:\n\n";
+      
+      if (storedResults) {
+        const results: CareerSuggestion[] = JSON.parse(storedResults);
+        profile += "=== PathXplore Career Suggestions ===\n";
+        results.slice(0, 3).forEach((career, index) => {
+          profile += `${index + 1}. ${career.careerName} (Top Match: ${index === 0})\n`;
+          profile += `   - Match Explanation: ${career.matchExplanation}\n`;
+        });
+        profile += "\n";
+      }
+
+      if (storedGoals) {
+        const goals: GoalPlan = JSON.parse(storedGoals);
+        profile += "=== GoalMint Plan ===\n";
+        Object.entries(goals).forEach(([timeframe, goalList]) => {
+          profile += `**${timeframe.replace('-', ' ')} Goals:**\n`;
+          goalList.forEach(goal => {
+            profile += `   - [${goal.category}] ${goal.title}\n`;
+          });
+        });
+        profile += "\n";
+      }
+      setStudentProfile(profile);
+    } catch (e) {
+      console.error("Failed to load student data from localStorage", e);
+      setStudentProfile("Could not load student profile data.");
+    }
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -42,7 +80,7 @@ export default function MentorsPage() {
     setInput('');
     setIsLoading(true);
 
-    const result = await getMentorResponse(newMessages);
+    const result = await getMentorResponse({ messages: newMessages, studentProfile });
     
     if (result.success && result.data) {
         const modelMessage: Message = { role: 'model', content: result.data };

@@ -121,6 +121,11 @@ function GeneratePlanDialog({ onPlanGenerated, careerSuggestions }: { onPlanGene
 
     if (result.success && result.data) {
       onPlanGenerated(result.data);
+      try {
+        localStorage.setItem('goalPlan', JSON.stringify(result.data));
+      } catch (e) {
+          console.error("Could not save goal plan to localStorage", e);
+      }
       toast({
         title: 'Plan Generated!',
         description: `Your new GoalMint™ plan for ${careerName} is ready.`,
@@ -197,6 +202,14 @@ export default function GoalsPage() {
       } catch (e) {
         console.error("Failed to parse assessment results from localStorage", e);
       }
+    }
+    const storedGoals = localStorage.getItem('goalPlan');
+    if (storedGoals) {
+        try {
+            setGoals(JSON.parse(storedGoals));
+        } catch (e) {
+            console.error("Failed to parse goal plan from localStorage", e);
+        }
     }
   }, []);
 

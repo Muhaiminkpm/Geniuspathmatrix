@@ -4,7 +4,7 @@
 import { suggestCareers, SuggestCareersInput } from '@/ai/flows/ai-career-suggestions';
 import { getSwotAnalysis, SwotAnalysisInput } from '@/ai/flows/swot-analysis-for-career';
 import { generateGoalsForCareer, GenerateGoalsInput } from '@/ai/flows/generate-goals-flow';
-import { getSocraticResponse, Message } from '@/ai/flows/mentor-flow';
+import { getSocraticResponse, MentorInput } from '@/ai/flows/mentor-flow';
 
 export async function getCareerSuggestions(input: SuggestCareersInput) {
   try {
@@ -51,9 +51,9 @@ export async function sendParentQuiz(parentContact: { email?: string, phone?: st
   return { success: true, message: 'Parent quiz sent successfully!' };
 }
 
-export async function getMentorResponse(messages: Message[]) {
+export async function getMentorResponse(input: MentorInput) {
   try {
-    const response = await getSocraticResponse(messages);
+    const response = await getSocraticResponse(input);
     return { success: true, data: response };
   } catch (error) {
     console.error('Error getting mentor response:', error);
