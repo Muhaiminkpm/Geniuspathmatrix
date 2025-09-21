@@ -1,14 +1,15 @@
 
 'use client';
 
+import * as React from 'react';
 import { AppHeader } from '@/components/layout/app-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { goals } from '@/lib/data';
+import { goals as initialGoals } from '@/lib/data';
 import type { Goal } from '@/lib/types';
-import { PlusCircle, BookOpen, Wrench, Users } from 'lucide-react';
+import { PlusCircle, BookOpen, Wrench, Users, Bot } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Accordion,
@@ -67,6 +68,8 @@ function GoalCategory({ title, goals, icon }: { title: "Academic" | "Skill" | "N
 }
 
 export default function GoalsPage() {
+  const [goals, setGoals] = React.useState(initialGoals);
+
   const goalPlans = [
     { period: '1-year', title: '1-Year Plan', goals: goals['1-year'] },
     { period: '3-year', title: '3-Year Plan', goals: goals['3-year'] },
@@ -75,18 +78,24 @@ export default function GoalsPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <AppHeader title="Goal Planning" />
+      <AppHeader title="GoalMint Planner" />
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         <div className="max-w-6xl mx-auto">
             <div className="flex items-center justify-between mb-8">
                 <div className="space-y-1">
-                    <h2 className="text-3xl font-bold font-headline tracking-tight">Your GoalMint™ Plans</h2>
-                    <p className="text-muted-foreground">Map out your future with short-term and long-term objectives.</p>
+                    <h2 className="text-3xl font-bold font-headline tracking-tight">Your SMART GoalMint™ Plan</h2>
+                    <p className="text-muted-foreground">Translate your chosen career path into an executable roadmap with our AI Goal Builder.</p>
                 </div>
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    New Goal
-                </Button>
+                <div className="flex gap-2">
+                  <Button>
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      New Goal
+                  </Button>
+                   <Button variant="outline">
+                      <Bot className="mr-2 h-4 w-4" />
+                      Generate with AI
+                  </Button>
+                </div>
             </div>
           
           <Tabs defaultValue="1-year" className="w-full">
@@ -103,7 +112,7 @@ export default function GoalsPage() {
                   <CardHeader>
                     <CardTitle className="font-headline">{plan.title}</CardTitle>
                     <CardDescription>
-                      Your objectives for the next {plan.period.replace('-',' ')}.
+                      Your SMART goals and execution timeline for the next {plan.period.replace('-',' ')}.
                     </CardDescription>
                   </CardHeader>
                   <CardContent>

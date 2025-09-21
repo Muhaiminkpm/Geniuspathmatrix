@@ -3,3 +3,4 @@ config();
 
 import '@/ai/flows/swot-analysis-for-career.ts';
 import '@/ai/flows/ai-career-suggestions.ts';
+import '@/ai/flows/generate-goals-flow.ts';
