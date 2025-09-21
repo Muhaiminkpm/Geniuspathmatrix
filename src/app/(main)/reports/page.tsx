@@ -10,11 +10,28 @@ import { format } from 'date-fns';
 const reports = [
     {
         id: 1,
-        title: "PathXplore Career Report",
+        title: "InsightX Report",
         date: new Date(),
-        description: "Your personalized career exploration report based on the InsightX Assessment."
+        description: "A detailed breakdown of your personality, interests, and cognitive assessment results."
     },
-    // Future reports will be added here
+    {
+        id: 2,
+        title: "PathXplore Report",
+        date: new Date(),
+        description: "An in-depth analysis of your top career matches, including SWOT analysis and match explanations."
+    },
+    {
+        id: 3,
+        title: "GoalMint Planner",
+        date: new Date(),
+        description: "Your complete 1, 3, and 5-year SMART goal roadmap for your chosen career path."
+    },
+    {
+        id: 4,
+        title: "Path-GeniX Career Mastery MatriX",
+        date: new Date(),
+        description: "A comprehensive summary matrix of your entire journey, from assessment to goals."
+    }
 ];
 
 export default function ReportsPage() {
@@ -56,5 +73,3 @@ export default function ReportsPage() {
     </div>
   );
 }
-
-    
