@@ -116,23 +116,38 @@ export default function PathXplorePage() {
     )
   }
 
+  const hasTakenAssessment = results && results.length > 0;
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <AppHeader title="PathXplore Career" />
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto">
           <div className="text-center space-y-2 mb-10">
-            <h2 className="text-3xl font-bold font-headline tracking-tight">
-              Explore Your Top Career Paths
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Based on your InsightX Assessment, we've identified these careers
-              as a strong fit for your unique profile. Dive in to learn more
-              about each path.
-            </p>
+             {hasTakenAssessment ? (
+                <>
+                    <h2 className="text-3xl font-bold font-headline tracking-tight">
+                    Explore Your Top Career Paths
+                    </h2>
+                    <p className="text-muted-foreground max-w-2xl mx-auto">
+                    Based on your InsightX Assessment, we've identified these careers
+                    as a strong fit for your unique profile. Dive in to learn more
+                    about each path.
+                    </p>
+                </>
+            ) : (
+                <>
+                    <h2 className="text-3xl font-bold font-headline tracking-tight">
+                    Discover Your Career Matches
+                    </h2>
+                    <p className="text-muted-foreground max-w-2xl mx-auto">
+                    Once you complete the InsightX assessment, our AI engine will find strong career matches that truly fit for you.
+                    </p>
+                </>
+            )}
           </div>
 
-          {results && results.length > 0 ? (
+          {hasTakenAssessment ? (
             <div className="space-y-12">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {results.map((career, index) => (
