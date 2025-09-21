@@ -580,7 +580,7 @@ export default function AssessmentPage() {
     return (
         <Card>
             <CardHeader>
-                <CardTitle className="font-headline text-2xl">Path-GeniX™ InsightX Assessment</CardTitle>
+                <CardTitle className="font-headline text-2xl">InsightX™ Assessment</CardTitle>
                 <CardDescription>For students of 13-19 age group: Discover Your Unique Potential</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -631,7 +631,7 @@ export default function AssessmentPage() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <AppHeader title="Path-GeniX Assessment" />
+      <AppHeader title="InsightX Assessment" />
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         {isLoading ? (
            <div className="flex flex-col items-center justify-center h-full text-center space-y-4">
