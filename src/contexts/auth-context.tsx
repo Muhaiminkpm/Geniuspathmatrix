@@ -2,8 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { LoadingSpinner } from '@/components/loading-spinner';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
@@ -32,8 +33,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return signInWithEmailAndPassword(auth, email, pass);
   };
   
-  const signup = (email: string, pass: string) => {
-    return createUserWithEmailAndPassword(auth, email, pass);
+  const signup = async (email: string, pass: string) => {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+    const user = userCredential.user;
+    
+    // Save user to Firestore
+    if (user) {
+      await setDoc(doc(db, "users", user.uid), {
+        email: user.email,
+        createdAt: serverTimestamp(),
+      });
+    }
+    
+    return userCredential;
   }
 
   const logout = () => {

@@ -4,15 +4,46 @@
 import { suggestCareers, SuggestCareersInput } from '@/ai/flows/ai-career-suggestions';
 import { getSwotAnalysis, SwotAnalysisInput } from '@/ai/flows/swot-analysis-for-career';
 import { generateGoalsForCareer, GenerateGoalsInput } from '@/ai/flows/generate-goals-flow';
-import { getSocraticResponse, MentorInput } from '@/ai/flows/mentor-flow';
+import { getSocraticResponse, MentorInput, Message } from '@/ai/flows/mentor-flow';
+import { auth, db } from '@/lib/firebase-admin'; // Using admin SDK on the server
+import { doc, setDoc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
 
-export async function getCareerSuggestions(input: SuggestCareersInput) {
+
+// This helper function assumes you have a way to get the current user's ID.
+// In a real app, you'd get this from the session. For now, we'll pass it in.
+async function getCurrentUserId(request: { userId?: string }): Promise<string> {
+    // In a real Next.js app with server-side auth, you'd verify the session token.
+    // For this prototype, we're trusting the client to send the userId.
+    if (request.userId) {
+        return request.userId;
+    }
+    // This is a fallback and should be replaced with proper session management.
+    const users = await auth.listUsers(1);
+    if (users.users.length > 0) return users.users[0].uid;
+    throw new Error('User not authenticated');
+}
+
+
+export async function getCareerSuggestions(input: SuggestCareersInput & { userId?: string }) {
   try {
+    const userId = await getCurrentUserId(input);
     const suggestions = await suggestCareers(input);
+    
+    // Save assessment answers and career suggestions to Firestore
+    const userDocRef = doc(db, "users", userId);
+    await updateDoc(userDocRef, {
+        assessment: {
+            ...input,
+            updatedAt: new Date(),
+        },
+        careerSuggestions: suggestions,
+    });
+    
     return { success: true, data: suggestions };
   } catch (error) {
     console.error('Error getting career suggestions:', error);
-    return { success: false, error: 'Failed to generate career suggestions.' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to generate career suggestions.';
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -26,13 +57,22 @@ export async function generateSwotAnalysis(input: SwotAnalysisInput) {
   }
 }
 
-export async function getGeneratedGoals(input: GenerateGoalsInput) {
+export async function getGeneratedGoals(input: GenerateGoalsInput & { userId?: string }) {
     try {
+        const userId = await getCurrentUserId(input);
         const goals = await generateGoalsForCareer(input);
+        
+        const userDocRef = doc(db, "users", userId);
+        await updateDoc(userDocRef, {
+            goalPlan: goals,
+        });
+
         return { success: true, data: goals };
-    } catch (error) {
+    } catch (error)
+ {
         console.error('Error generating goals:', error);
-        return { success: false, error: 'Failed to generate goals.' };
+        const errorMessage = error instanceof Error ? error.message : 'Failed to generate goals.';
+        return { success: false, error: errorMessage };
     }
 }
 
@@ -51,12 +91,43 @@ export async function sendParentQuiz(parentContact: { email?: string, phone?: st
   return { success: true, message: 'Parent quiz sent successfully!' };
 }
 
-export async function getMentorResponse(input: MentorInput) {
+export async function getMentorResponse(input: MentorInput & { userId?: string }) {
   try {
+    const userId = await getCurrentUserId(input);
     const response = await getSocraticResponse(input);
+    
+    // Save both user message and model response to Firestore
+    const userDocRef = doc(db, "users", userId);
+    const userMessage = input.messages[input.messages.length - 1];
+
+    await updateDoc(userDocRef, {
+        mentorChat: arrayUnion(userMessage, { role: 'model', content: response })
+    });
+    
     return { success: true, data: response };
   } catch (error) {
     console.error('Error getting mentor response:', error);
-    return { success: false, error: 'Failed to get mentor response.' };
+    const errorMessage = error instanceof Error ? error.message : 'Failed to get mentor response.';
+    return { success: false, error: errorMessage };
   }
+}
+
+export async function getUserData(userId: string) {
+    try {
+        if (!userId) {
+            return { success: false, error: "User not authenticated." };
+        }
+        const userDocRef = doc(db, "users", userId);
+        const docSnap = await getDoc(userDocRef);
+
+        if (docSnap.exists()) {
+            return { success: true, data: docSnap.data() };
+        } else {
+            return { success: true, data: null }; // User exists but has no data yet
+        }
+    } catch (error) {
+        console.error('Error fetching user data:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to fetch user data.';
+        return { success: false, error: errorMessage };
+    }
 }

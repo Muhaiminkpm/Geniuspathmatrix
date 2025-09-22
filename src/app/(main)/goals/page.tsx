@@ -26,11 +26,12 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { getGeneratedGoals } from '@/lib/actions';
+import { getGeneratedGoals, getUserData } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
+import { useAuth } from '@/contexts/auth-context';
 
 const categoryIcons = {
   Academic: <BookOpen className="h-5 w-5 text-blue-500" />,
@@ -76,7 +77,7 @@ function GoalCategory({ title, goals, icon }: { title: "Academic" | "Skill" | "N
     );
 }
 
-function GeneratePlanDialog({ onPlanGenerated, careerSuggestions }: { onPlanGenerated: (plan: GoalPlan) => void, careerSuggestions: CareerSuggestion[] | null }) {
+function GeneratePlanDialog({ onPlanGenerated, careerSuggestions, userId }: { onPlanGenerated: (plan: GoalPlan) => void, careerSuggestions: CareerSuggestion[] | null, userId: string | null }) {
   const [open, setOpen] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
   const { toast } = useToast();
@@ -84,6 +85,12 @@ function GeneratePlanDialog({ onPlanGenerated, careerSuggestions }: { onPlanGene
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
+
+    if (!userId) {
+        toast({ variant: 'destructive', title: 'Not Authenticated' });
+        setIsLoading(false);
+        return;
+    }
 
     if (!careerSuggestions) {
       toast({
@@ -117,15 +124,10 @@ function GeneratePlanDialog({ onPlanGenerated, careerSuggestions }: { onPlanGene
       return;
     }
 
-    const result = await getGeneratedGoals({ careerName, studentProfile, timeframes });
+    const result = await getGeneratedGoals({ careerName, studentProfile, timeframes, userId });
 
     if (result.success && result.data) {
       onPlanGenerated(result.data);
-      try {
-        localStorage.setItem('goalPlan', JSON.stringify(result.data));
-      } catch (e) {
-          console.error("Could not save goal plan to localStorage", e);
-      }
       toast({
         title: 'Plan Generated!',
         description: `Your new GoalMint™ plan for ${careerName} is ready.`,
@@ -179,7 +181,7 @@ function GeneratePlanDialog({ onPlanGenerated, careerSuggestions }: { onPlanGene
             <Input id="timeframes" name="timeframes" placeholder="e.g., 1 year, 3 years, 10 years" className="col-span-3" defaultValue="1-year, 3-year, 5-year" />
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={isLoading || !careerSuggestions}>
+            <Button type="submit" disabled={isLoading || !careerSuggestions || !userId}>
               {isLoading && <LoadingSpinner className="mr-2" />}
               Generate Plan
             </Button>
@@ -193,25 +195,47 @@ function GeneratePlanDialog({ onPlanGenerated, careerSuggestions }: { onPlanGene
 export default function GoalsPage() {
   const [goals, setGoals] = React.useState<GoalPlan | null>(null);
   const [careerSuggestions, setCareerSuggestions] = React.useState<CareerSuggestion[] | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
 
   React.useEffect(() => {
-    const storedResults = localStorage.getItem('assessmentResults');
-    if (storedResults) {
+    async function loadData() {
+      if(authLoading) return;
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
       try {
-        setCareerSuggestions(JSON.parse(storedResults));
+        const res = await getUserData(user.uid);
+        if (res.success && res.data) {
+            if (res.data.careerSuggestions) setCareerSuggestions(res.data.careerSuggestions);
+            if (res.data.goalPlan) setGoals(res.data.goalPlan);
+        }
       } catch (e) {
-        console.error("Failed to parse assessment results from localStorage", e);
+        toast({
+          variant: 'destructive',
+          title: 'Could not load data',
+          description: 'There was a problem loading your data from the database.',
+        });
+      } finally {
+        setIsLoading(false);
       }
     }
-    const storedGoals = localStorage.getItem('goalPlan');
-    if (storedGoals) {
-        try {
-            setGoals(JSON.parse(storedGoals));
-        } catch (e) {
-            console.error("Failed to parse goal plan from localStorage", e);
-        }
-    }
-  }, []);
+    loadData();
+  }, [user, authLoading, toast]);
+
+
+  if (isLoading || authLoading) {
+    return (
+        <div className="flex min-h-0 flex-1 flex-col">
+            <AppHeader title="GoalMint Planner" />
+            <main className="flex-1 flex items-center justify-center">
+                <LoadingSpinner className="h-10 w-10" />
+            </main>
+        </div>
+    )
+  }
 
   const goalPlans = goals ? Object.entries(goals).map(([period, goals]) => ({
     period: period,
@@ -236,7 +260,7 @@ export default function GoalsPage() {
                       <PlusCircle className="mr-2 h-4 w-4" />
                       New Goal
                   </Button>
-                  <GeneratePlanDialog onPlanGenerated={setGoals} careerSuggestions={careerSuggestions} />
+                  <GeneratePlanDialog onPlanGenerated={setGoals} careerSuggestions={careerSuggestions} userId={user?.uid || null} />
                 </div>
             </div>
           
@@ -276,7 +300,7 @@ export default function GoalsPage() {
                 <CardDescription className="mt-2 mb-6 max-w-sm mx-auto">
                     Your GoalMint™ Plan is currently empty. Use the AI Goal Builder to generate a personalized action plan based on your career choice.
                 </CardDescription>
-                <GeneratePlanDialog onPlanGenerated={setGoals} careerSuggestions={careerSuggestions} />
+                <GeneratePlanDialog onPlanGenerated={setGoals} careerSuggestions={careerSuggestions} userId={user?.uid || null} />
              </Card>
           )}
         </div>

@@ -7,14 +7,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Send, User, Bot, CornerDownLeft } from 'lucide-react';
-import { getMentorResponse } from '@/lib/actions';
+import { getMentorResponse, getUserData } from '@/lib/actions';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { cn } from '@/lib/utils';
 import type { Message } from '@/ai/flows/mentor-flow';
 import type { CareerSuggestion, GoalPlan } from '@/lib/types';
+import { useAuth } from '@/contexts/auth-context';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function MentorsPage() {
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
   const [messages, setMessages] = React.useState<Message[]>([
     {
       role: 'model',
@@ -24,43 +28,62 @@ export default function MentorsPage() {
   const [input, setInput] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
   const [studentProfile, setStudentProfile] = React.useState('');
+  const [isDataLoading, setIsDataLoading] = React.useState(true);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    // Load data from localStorage and construct the profile string
-    try {
-      const storedResults = localStorage.getItem('assessmentResults');
-      const storedGoals = localStorage.getItem('goalPlan');
-
-      let profile = "Student's Path-GeniX Profile:\n\n";
+    async function loadData() {
+      if (authLoading) return;
+      if (!user) {
+        setIsDataLoading(false);
+        return;
+      }
       
-      if (storedResults) {
-        const results: CareerSuggestion[] = JSON.parse(storedResults);
-        profile += "=== PathXplore Career Suggestions ===\n";
-        results.slice(0, 3).forEach((career, index) => {
-          profile += `${index + 1}. ${career.careerName} (Top Match: ${index === 0})\n`;
-          profile += `   - Match Explanation: ${career.matchExplanation}\n`;
-        });
-        profile += "\n";
-      }
+      setIsDataLoading(true);
+      try {
+        const res = await getUserData(user.uid);
+        if (res.success && res.data) {
+            let profile = "Student's Path-GeniX Profile:\n\n";
+            if (res.data.careerSuggestions) {
+                const results: CareerSuggestion[] = res.data.careerSuggestions;
+                profile += "=== PathXplore Career Suggestions ===\n";
+                results.slice(0, 3).forEach((career, index) => {
+                    profile += `${index + 1}. ${career.careerName} (Top Match: ${index === 0})\n`;
+                    profile += `   - Match Explanation: ${career.matchExplanation}\n`;
+                });
+                profile += "\n";
+            }
 
-      if (storedGoals) {
-        const goals: GoalPlan = JSON.parse(storedGoals);
-        profile += "=== GoalMint Plan ===\n";
-        Object.entries(goals).forEach(([timeframe, goalList]) => {
-          profile += `**${timeframe.replace('-', ' ')} Goals:**\n`;
-          goalList.forEach(goal => {
-            profile += `   - [${goal.category}] ${goal.title}\n`;
-          });
+            if (res.data.goalPlan) {
+                const goals: GoalPlan = res.data.goalPlan;
+                profile += "=== GoalMint Plan ===\n";
+                Object.entries(goals).forEach(([timeframe, goalList]) => {
+                    profile += `**${timeframe.replace('-', ' ')} Goals:**\n`;
+                    goalList.forEach(goal => {
+                    profile += `   - [${goal.category}] ${goal.title}\n`;
+                    });
+                });
+                profile += "\n";
+            }
+            setStudentProfile(profile);
+
+            if (res.data.mentorChat) {
+                setMessages(prev => [prev[0], ...res.data.mentorChat]);
+            }
+        }
+      } catch (e) {
+        toast({
+            variant: 'destructive',
+            title: 'Could not load data',
+            description: 'There was a problem loading your profile data.',
         });
-        profile += "\n";
+        setStudentProfile("Could not load student profile data.");
+      } finally {
+        setIsDataLoading(false);
       }
-      setStudentProfile(profile);
-    } catch (e) {
-      console.error("Failed to load student data from localStorage", e);
-      setStudentProfile("Could not load student profile data.");
     }
-  }, []);
+    loadData();
+  }, [user, authLoading, toast]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -72,7 +95,7 @@ export default function MentorsPage() {
 
   const handleSendMessage = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !user) return;
 
     const userMessage: Message = { role: 'user', content: input };
     const newMessages = [...messages, userMessage];
@@ -80,7 +103,7 @@ export default function MentorsPage() {
     setInput('');
     setIsLoading(true);
 
-    const result = await getMentorResponse({ messages: newMessages, studentProfile });
+    const result = await getMentorResponse({ messages: newMessages, studentProfile, userId: user.uid });
     
     if (result.success && result.data) {
         const modelMessage: Message = { role: 'model', content: result.data };
@@ -99,6 +122,17 @@ export default function MentorsPage() {
         handleSendMessage();
     }
   };
+  
+  if (authLoading || isDataLoading) {
+      return (
+        <div className="flex min-h-0 flex-1 flex-col">
+            <AppHeader title="MentorSuite AI" />
+            <main className="flex-1 flex items-center justify-center">
+                <LoadingSpinner className="h-10 w-10" />
+            </main>
+        </div>
+      )
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -142,7 +176,7 @@ export default function MentorsPage() {
                         onKeyDown={handleKeyDown}
                         placeholder="Ask me anything about your career path..."
                         className="pr-20 min-h-[52px] resize-none"
-                        disabled={isLoading}
+                        disabled={isLoading || !user}
                     />
                     <div className="absolute top-1/2 right-3 -translate-y-1/2 flex items-center gap-2">
                         <p className="text-xs text-muted-foreground hidden md:block">
@@ -150,7 +184,7 @@ export default function MentorsPage() {
                                 <span className="text-xs">Shift +</span><CornerDownLeft className="h-3 w-3" />
                             </kbd> for new line
                         </p>
-                        <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+                        <Button type="submit" size="icon" disabled={isLoading || !input.trim() || !user}>
                             <Send className="h-5 w-5" />
                             <span className="sr-only">Send Message</span>
                         </Button>

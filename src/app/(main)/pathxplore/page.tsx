@@ -18,6 +18,8 @@ import { ArrowRight, FileText } from 'lucide-react';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { LoadingSpinner } from '@/components/loading-spinner';
+import { useAuth } from '@/contexts/auth-context';
+import { getUserData } from '@/lib/actions';
 
 function CareerCard({
   career,
@@ -28,6 +30,7 @@ function CareerCard({
 }) {
   // A simple function to format SWOT analysis text into HTML
   const formatSwot = (text: string) => {
+    if (!text) return '';
     return text
       .replace(/(\*\*Strengths:\*\*|Strengths:)/g, '<strong>Strengths:</strong>')
       .replace(/(\*\*Weaknesses:\*\*|Weaknesses:)/g, '<strong>Weaknesses:</strong>')
@@ -75,23 +78,33 @@ export default function PathXplorePage() {
   const [results, setResults] = React.useState<CareerSuggestion[] | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
 
   React.useEffect(() => {
-    try {
-      const storedResults = localStorage.getItem('assessmentResults');
-      if (storedResults) {
-        setResults(JSON.parse(storedResults));
+    async function loadData() {
+      if (authLoading) return;
+      if (!user) {
+        setIsLoading(false);
+        return;
       }
-    } catch (e) {
-      toast({
-        variant: 'destructive',
-        title: 'Could not load results',
-        description: 'There was a problem loading your assessment results.',
-      });
-    } finally {
-      setIsLoading(false);
+
+      try {
+        const res = await getUserData(user.uid);
+        if (res.success && res.data?.careerSuggestions) {
+          setResults(res.data.careerSuggestions);
+        }
+      } catch (e) {
+        toast({
+          variant: 'destructive',
+          title: 'Could not load results',
+          description: 'There was a problem loading your assessment results from the database.',
+        });
+      } finally {
+        setIsLoading(false);
+      }
     }
-  }, [toast]);
+    loadData();
+  }, [user, authLoading, toast]);
 
   const handleGenerateReport = () => {
     // In a real app, this would trigger a more complex report generation flow.
@@ -102,7 +115,7 @@ export default function PathXplorePage() {
     });
   }
 
-  if (isLoading) {
+  if (isLoading || authLoading) {
     return (
         <div className="flex min-h-0 flex-1 flex-col">
             <AppHeader title="PathXplore Career" />

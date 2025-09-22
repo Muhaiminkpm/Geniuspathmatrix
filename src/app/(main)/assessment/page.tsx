@@ -21,6 +21,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { format, differenceInYears } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useAuth } from '@/contexts/auth-context';
 
 const assessmentSections = [
   {
@@ -256,6 +257,7 @@ function QuestionCard({
 
 export default function AssessmentPage() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const [currentStep, setCurrentStep] = React.useState(0);
   const [answers, setAnswers] = React.useState<Record<string, Record<string, string>>>({
     personality: {},
@@ -274,6 +276,17 @@ export default function AssessmentPage() {
   const [parentEmail, setParentEmail] = React.useState('');
   const [parentPhone, setParentPhone] = React.useState('');
   const { toast } = useToast();
+
+  React.useEffect(() => {
+    if (!authLoading && !user) {
+      router.push('/login');
+      toast({
+        title: 'Authentication Required',
+        description: 'You need to be logged in to take the assessment.',
+        variant: 'destructive',
+      });
+    }
+  }, [user, authLoading, router, toast]);
 
   const handleNext = () => setCurrentStep(prev => Math.min(prev + 1, totalSteps));
   const handleBack = () => setCurrentStep(prev => Math.max(prev - 1, 0));
@@ -307,6 +320,14 @@ export default function AssessmentPage() {
   };
 
   const handleSubmit = async () => {
+    if (!user) {
+      toast({
+        variant: 'destructive',
+        title: 'Not Logged In',
+        description: 'You must be logged in to submit your assessment.',
+      });
+      return;
+    }
     setIsLoading(true);
 
     const formattedAnswers = {
@@ -315,23 +336,15 @@ export default function AssessmentPage() {
       cognitiveAbilities: Object.entries(answers.cognitiveAbilities).map(([k, v]) => `${k}:${v}`).join(' '),
       selfReportedSkills: Object.entries(answers.selfReportedSkills).map(([k, v]) => `${k}:${v}`).join(' '),
       cvq: Object.entries(answers.cvq).map(([k, v]) => `${k}:${v}`).join(' '),
+      userId: user.uid,
     };
     
     const result = await getCareerSuggestions(formattedAnswers);
     
     if (result.success && result.data) {
-      // Store results and redirect
-      try {
-        localStorage.setItem('assessmentResults', JSON.stringify(result.data));
-        router.push('/pathxplore');
-      } catch (e) {
-        toast({
-          variant: 'destructive',
-          title: 'Could not save results',
-          description: 'Your browser seems to have private browsing enabled, which prevents saving your results. Please disable it and try again.',
-        });
-        setIsLoading(false);
-      }
+      // Data is now saved in Firestore via the server action.
+      // We can remove localStorage.
+      router.push('/pathxplore');
     } else {
       toast({
         variant: 'destructive',
@@ -343,9 +356,18 @@ export default function AssessmentPage() {
   };
   
   const resetAssessment = () => {
-    localStorage.removeItem('assessmentResults');
+    // This might be used to clear state and allow retaking, 
+    // but we'll leave data in Firestore for historical purposes.
     setCurrentStep(0);
     setAnswers({ personality: {}, interest: {}, cognitiveAbilities: {}, selfReportedSkills: {}, cvq: {} });
+  }
+
+  if (authLoading || !user) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <LoadingSpinner className="h-12 w-12" />
+      </div>
+    );
   }
 
   const renderStep = () => {
