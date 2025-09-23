@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { CareerSuggestion, GoalPlan } from '@/lib/types';
-import { PlusCircle, BookOpen, Wrench, Users, Bot, Star } from 'lucide-react';
+import { PlusCircle, BookOpen, Wrench, Users, Bot, Star, Goal as GoalIcon } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -291,7 +291,7 @@ export default function GoalsPage() {
             </Tabs>
           ) : (
              <Card className="text-center p-12 border-dashed">
-                <Goal className="h-12 w-12 mx-auto text-muted-foreground" />
+                <GoalIcon className="h-12 w-12 mx-auto text-muted-foreground" />
                 <CardTitle className="font-headline mt-4">Create Your Career Roadmap</CardTitle>
                 <CardDescription className="mt-2 mb-6 max-w-sm mx-auto">
                     Your GoalMint™ Plan is currently empty. Use the AI Goal Builder to generate a personalized action plan based on your career choice.

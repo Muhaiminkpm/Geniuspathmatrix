@@ -5,28 +5,15 @@ import { suggestCareers, SuggestCareersInput } from '@/ai/flows/ai-career-sugges
 import { getSwotAnalysis, SwotAnalysisInput } from '@/ai/flows/swot-analysis-for-career';
 import { generateGoalsForCareer, GenerateGoalsInput } from '@/ai/flows/generate-goals-flow';
 import { getSocraticResponse, MentorInput, Message } from '@/ai/flows/mentor-flow';
-import { auth, db } from '@/lib/firebase-admin'; // Using admin SDK on the server
-import { doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-
-
-// This helper function assumes you have a way to get the current user's ID.
-// In a real app, you'd get this from the session. For now, we'll pass it in.
-async function getCurrentUserId(request: { userId?: string }): Promise<string> {
-    // In a real Next.js app with server-side auth, you'd verify the session token.
-    // For this prototype, we're trusting the client to send the userId.
-    if (request.userId) {
-        return request.userId;
-    }
-    // This is a fallback and should be replaced with proper session management.
-    const users = await auth.listUsers(1);
-    if (users.users.length > 0) return users.users[0].uid;
-    throw new Error('User not authenticated');
-}
+import { db } from '@/lib/firebase-admin'; // Using admin SDK on the server
+import { doc, getDoc, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
 
 
 export async function getCareerSuggestions(input: SuggestCareersInput & { userId: string }) {
   try {
     const userId = input.userId;
+    if (!userId) throw new Error("User not authenticated.");
+
     const suggestions = await suggestCareers(input);
     
     // Save assessment answers and career suggestions to Firestore
@@ -60,6 +47,8 @@ export async function generateSwotAnalysis(input: SwotAnalysisInput) {
 export async function getGeneratedGoals(input: GenerateGoalsInput & { userId: string }) {
     try {
         const userId = input.userId;
+        if (!userId) throw new Error("User not authenticated.");
+
         const goals = await generateGoalsForCareer(input);
         
         const userDocRef = doc(db, "users", userId);
@@ -77,14 +66,13 @@ export async function getGeneratedGoals(input: GenerateGoalsInput & { userId: st
 }
 
 export async function sendParentQuiz(parentContact: { email?: string, phone?: string }) {
-  // TODO: Implement actual email/SMS sending logic here.
-  // This is a placeholder to simulate the action.
+  // In a real app, you would generate a unique, secure link to the /parent-quiz page
+  // and use a service like Twilio or SendGrid to send it.
   console.log('Simulating sending parent quiz to:', parentContact);
   if (!parentContact.email && !parentContact.phone) {
     return { success: false, error: 'No contact information provided.' };
   }
-  // In a real app, you would generate a unique, secure link to the /parent-quiz page.
-  const quizLink = '/parent-quiz?uid=<some-unique-token>'; 
+  const quizLink = '/parent-quiz?uid=<some-unique-token-identifying-student>'; 
   console.log(`(Pretend) Sending link ${quizLink} to parent.`);
   
   // Simulate success
@@ -94,6 +82,8 @@ export async function sendParentQuiz(parentContact: { email?: string, phone?: st
 export async function getMentorResponse(input: MentorInput & { userId: string }) {
   try {
     const userId = input.userId;
+    if (!userId) throw new Error("User not authenticated.");
+    
     const response = await getSocraticResponse(input);
     
     // Save both user message and model response to Firestore
@@ -101,9 +91,15 @@ export async function getMentorResponse(input: MentorInput & { userId: string })
     const userMessage = input.messages[input.messages.length - 1];
 
     // Use arrayUnion to add the new messages to the chat history
+    // We ensure the mentorChat field exists before trying to union.
+    const userDoc = await getDoc(userDocRef);
+    if (!userDoc.exists() || !userDoc.data()?.mentorChat) {
+         await setDoc(userDocRef, { mentorChat: [] }, { merge: true });
+    }
+    
     await updateDoc(userDocRef, {
         mentorChat: arrayUnion(userMessage, { role: 'model', content: response })
-    }, { merge: true }); // Use merge to avoid overwriting the whole document
+    });
     
     return { success: true, data: response };
   } catch (error) {
@@ -124,8 +120,7 @@ export async function getUserData(userId: string) {
         if (docSnap.exists()) {
             return { success: true, data: docSnap.data() };
         } else {
-            // This case can happen if the user document wasn't created on signup
-            // For robustness, we could create it here, but for now, we return null.
+            // This case can happen if the user document wasn't created on signup for some reason.
             return { success: true, data: null };
         }
     } catch (error) {

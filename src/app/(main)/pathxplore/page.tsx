@@ -115,7 +115,6 @@ export default function PathXplorePage() {
       if (authLoading) return;
       if (!user) {
         setIsLoading(false);
-        // Optionally, redirect or show login prompt
         return;
       }
 
