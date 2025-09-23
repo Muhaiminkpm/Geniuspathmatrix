@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -95,7 +94,7 @@ function CareerCard({
       <CardFooter className="flex justify-end">
          <Button asChild>
             <Link href="/goals">
-                Select Path & Plan Goals
+                Select Path &amp; Plan Goals
                 <ArrowRight className="ml-2"/>
             </Link>
         </Button>
@@ -205,7 +204,7 @@ export default function PathXplorePage() {
                 <Card className="bg-muted/50">
                     <CardHeader className="flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <div className="space-y-1">
-                            <CardTitle className="font-headline">PathXplore Report & Next Steps</CardTitle>
+                            <CardTitle className="font-headline">PathXplore Report &amp; Next Steps</CardTitle>
                             <CardDescription>Generate a detailed report and start planning your future.</CardDescription>
                         </div>
                          <div className="flex gap-4">

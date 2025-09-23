@@ -1,4 +1,3 @@
-
 'use server';
 
 import { suggestCareers, SuggestCareersInput } from '@/ai/flows/ai-career-suggestions';

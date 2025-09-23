@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -7,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { CareerSuggestion, GoalPlan } from '@/lib/types';
-import { PlusCircle, BookOpen, Wrench, Users, Bot, Star, Goal as GoalIcon } from 'lucide-react';
+import { PlusCircle, BookOpen, Wrench, Users, Bot, Star, Goal } from 'lucide-react';
 import {
   Accordion,
   AccordionContent,
@@ -39,9 +38,9 @@ const categoryIcons = {
   Networking: <Users className="h-5 w-5 text-purple-500" />,
 };
 
-type Goal = GoalPlan[string][0];
+type GoalItemType = GoalPlan[string][0];
 
-function GoalItem({ goal }: { goal: Goal }) {
+function GoalItem({ goal }: { goal: GoalItemType }) {
   return (
     <div className="flex items-start space-x-4 py-3">
       <Star className="h-4 w-4 mt-1 text-primary/70 flex-shrink-0" />
@@ -53,7 +52,7 @@ function GoalItem({ goal }: { goal: Goal }) {
   );
 }
 
-function GoalCategory({ title, goals, icon }: { title: "Academic" | "Skill" | "Networking", goals: Goal[], icon: React.ReactNode }) {
+function GoalCategory({ title, goals, icon }: { title: "Academic" | "Skill" | "Networking", goals: GoalItemType[], icon: React.ReactNode }) {
     const filteredGoals = goals.filter(g => g.category === title);
     if (filteredGoals.length === 0) return null;
 
@@ -291,7 +290,7 @@ export default function GoalsPage() {
             </Tabs>
           ) : (
              <Card className="text-center p-12 border-dashed">
-                <GoalIcon className="h-12 w-12 mx-auto text-muted-foreground" />
+                <Goal className="h-12 w-12 mx-auto text-muted-foreground" />
                 <CardTitle className="font-headline mt-4">Create Your Career Roadmap</CardTitle>
                 <CardDescription className="mt-2 mb-6 max-w-sm mx-auto">
                     Your GoalMint™ Plan is currently empty. Use the AI Goal Builder to generate a personalized action plan based on your career choice.
