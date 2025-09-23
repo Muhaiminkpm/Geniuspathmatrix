@@ -4,9 +4,7 @@ import { applicationDefault } from 'firebase-admin/app';
 
 if (!admin.apps.length) {
   admin.initializeApp({
-    credential: process.env.FIREBASE_SERVICE_ACCOUNT_KEY
-      ? admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY))
-      : applicationDefault(),
+    credential: applicationDefault(),
   });
 }
 
