@@ -48,7 +48,7 @@ export default function Home() {
                     <h1 className="text-4xl font-bold font-headline tracking-tight text-foreground">Welcome to Your Career Journey</h1>
                     <p className="text-xl font-medium text-primary">Your Blueprint for Career Excellence. Design Your Future Today!</p>
                     <p className="text-lg text-muted-foreground max-w-3xl">
-                        Path-GeniX™ is here to guide you through a structured, personalized, and metacognitive career discovery journey. Lets build your future, Today.
+                        Path-GeniX™ is here to guide you through a structured, personalized, and metacognitive career discovery journey. Let's build your future, Today.
                     </p>
                     <Button size="lg" asChild className="font-semibold">
                        <Link href="/assessment">Begin Your Journey <ArrowRight /></Link>
