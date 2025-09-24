@@ -52,7 +52,7 @@ export default function ReportsPage() {
         if(authLoading) return;
         if (!user) {
             setIsLoading(false);
-            setReports(initialReports.map(r => ({...r, date: new Date(), isAvailable: false})));
+            setReports(initialReports.map(r => ({...r, date: null, isAvailable: false})));
             return;
         }
 
@@ -63,7 +63,7 @@ export default function ReportsPage() {
             
             setReports(initialReports.map(report => ({ 
                 ...report, 
-                date: new Date(),
+                date: hasAssessmentData ? new Date() : null,
                 isAvailable: report.requiresData ? hasAssessmentData : true,
             })));
 
@@ -73,7 +73,7 @@ export default function ReportsPage() {
               title: 'Could not load data',
               description: 'There was a problem loading your user data.',
             });
-            setReports(initialReports.map(r => ({...r, date: new Date(), isAvailable: false})));
+            setReports(initialReports.map(r => ({...r, date: null, isAvailable: false})));
         } finally {
             setIsLoading(false);
         }
@@ -118,10 +118,10 @@ export default function ReportsPage() {
                         <Card key={report.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                             <CardHeader>
                                 <CardTitle className="font-headline">{report.title}</CardTitle>
-                                {report.date ? (
+                                {report.isAvailable && report.date ? (
                                     <CardDescription>Generated on {format(report.date, "PPP")}</CardDescription>
                                 ) : (
-                                    <Skeleton className="h-4 w-32 mt-1" />
+                                    <CardDescription>Complete the assessment to generate this report.</CardDescription>
                                 )}
                             </CardHeader>
                             <CardContent className="p-6 pt-0 sm:pt-6">
