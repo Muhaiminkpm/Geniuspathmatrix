@@ -5,7 +5,7 @@ import { getSwotAnalysis, SwotAnalysisInput } from '@/ai/flows/swot-analysis-for
 import { generateGoalsForCareer, GenerateGoalsInput } from '@/ai/flows/generate-goals-flow';
 import { getSocraticResponse, MentorInput } from '@/ai/flows/mentor-flow';
 import { db } from '@/lib/firebase-admin'; // Using admin SDK on the server
-import { Timestamp } from 'firebase-admin/firestore';
+import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 
 
 export async function getCareerSuggestions(input: SuggestCareersInput & { userId: string }) {
