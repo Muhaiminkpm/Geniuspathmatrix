@@ -3,29 +3,26 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 import { applicationDefault } from 'firebase-admin/app';
 
-let app: admin.app.App;
-if (!admin.apps.length) {
-    try {
-      // This will use the GOOGLE_APPLICATION_CREDENTIALS environment variable
-      // automatically provided by App Hosting.
-      app = admin.initializeApp({
-        credential: applicationDefault(),
-      });
-    } catch (e) {
-      console.error('Firebase Admin Initialization Error:', e);
-      // Fallback for local development if GOOGLE_APPLICATION_CREDENTIALS is not set
-      if (process.env.NODE_ENV !== 'production') {
-        // This will only work if you have the service account file locally
-        // and the env var is set in your local .env file.
-        // It's a common pattern for local dev vs. cloud deployment.
-      } else {
-        throw e;
-      }
+function getAdminApp() {
+    if (admin.apps.length > 0) {
+        return admin.app();
     }
-} else {
-    app = admin.app();
+
+    try {
+        // This will use the GOOGLE_APPLICATION_CREDENTIALS environment variable
+        // automatically provided by App Hosting.
+        return admin.initializeApp({
+            credential: applicationDefault(),
+        });
+    } catch (e) {
+        console.error('Firebase Admin Initialization Error:', e);
+        // This block will re-throw the error, ensuring that we don't proceed
+        // with an uninitialized app, which was the cause of the crashes.
+        throw new Error('Failed to initialize Firebase Admin SDK. Ensure GOOGLE_APPLICATION_CREDENTIALS are set.');
+    }
 }
 
+const app = getAdminApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
 

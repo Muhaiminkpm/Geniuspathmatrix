@@ -4,7 +4,7 @@ import { suggestCareers, SuggestCareersInput } from '@/ai/flows/ai-career-sugges
 import { getSwotAnalysis, SwotAnalysisInput } from '@/ai/flows/swot-analysis-for-career';
 import { generateGoalsForCareer, GenerateGoalsInput } from '@/ai/flows/generate-goals-flow';
 import { getSocraticResponse, MentorInput } from '@/ai/flows/mentor-flow';
-import { db } from '@/lib/firebase-admin'; // Using admin SDK on the server
+import { db } from '@/lib/firebase-admin';
 import { Timestamp, FieldValue } from 'firebase-admin/firestore';
 
 
@@ -26,7 +26,7 @@ export async function getCareerSuggestions(input: SuggestCareersInput & { userId
         careerSuggestions: suggestions,
     }, { merge: true });
 
-    // 3. Generate and save the summary report, as requested
+    // 3. Generate and save the summary report
     const reportDocRef = db.collection("reports").doc(userId);
     const reportData = {
         userId: userId,
