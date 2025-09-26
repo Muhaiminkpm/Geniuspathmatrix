@@ -295,6 +295,12 @@ export default function AssessmentPage() {
     return () => clearInterval(interval);
   }, [timeLeft, isTestActive]);
 
+  React.useEffect(() => {
+    if (isTestActive) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentStep, isTestActive]);
+
   const handleStartAssessment = () => {
     setIsTestActive(true);
     setCurrentStep(1);
@@ -482,13 +488,7 @@ export default function AssessmentPage() {
       let questionsContent;
       let questionNumberOffset = 0;
       for(let i=0; i<sectionIndex; i++) {
-        let questionCount = 0;
-        if (assessmentSections[i].id === 'cvq') {
-          questionCount = 25; // Manually set for cvq with added questions
-        } else {
-          questionCount = assessmentSections[i].questions;
-        }
-        questionNumberOffset += questionCount;
+        questionNumberOffset += assessmentSections[i].questions;
       }
       
       switch(section.id) {
@@ -614,8 +614,7 @@ export default function AssessmentPage() {
                         <li>For students of 13-19 age group: Discover Your Unique Potential</li>
                         <li>This assessment is designed to help you understand your unique personality, interests, and cognitive strengths. There are no right or wrong answers. Answer honestly based on how you truly feel or typically behave.</li>
                         <li>The assessment consists of {totalQuestions} questions divided into {assessmentSections.length} sections.</li>
-                        <li>The total time allotted for the assessment is {totalTime} minutes.</li>
-                        <li>Each section has a specific time limit. You must complete all questions within a section before its time limit expires or you move to the next section.</li>
+                        <li>A continuous timer of {totalTime} minutes is set for the entire assessment.</li>
                         <li>Once you complete a section and move to the next, you will not be able to go back to previous sections.</li>
                         <li>Read each question carefully.</li>
                         <li>Choose the option that best describes you or your answer.</li>
@@ -629,7 +628,7 @@ export default function AssessmentPage() {
                                 <h4 className="font-semibold">Section {index + 1}: {section.title}</h4>
                                 <ul className="list-disc list-inside text-xs text-muted-foreground">
                                     <li>Number of Questions: {section.questions}</li>
-                                    <li>Time Allotment: {section.time} Minutes</li>
+                                    <li>Approximate Time: {section.time} Minutes</li>
                                 </ul>
                             </div>
                         ))}
