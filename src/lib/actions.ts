@@ -13,8 +13,10 @@ export async function getCareerSuggestions(input: SuggestCareersInput & { userId
     const userId = input.userId;
     if (!userId) throw new Error("User not authenticated.");
 
+    // 1. Get career suggestions from the AI flow
     const suggestions = await suggestCareers(input);
     
+    // 2. Save assessment data and suggestions to the user's document
     const userDocRef = db.collection("users").doc(userId);
     await userDocRef.set({
         assessment: {
@@ -23,6 +25,20 @@ export async function getCareerSuggestions(input: SuggestCareersInput & { userId
         },
         careerSuggestions: suggestions,
     }, { merge: true });
+
+    // 3. Generate and save the summary report, as requested
+    const reportDocRef = db.collection("reports").doc(userId);
+    const reportData = {
+        userId: userId,
+        assessmentSummary: {
+            personality: input.personality.substring(0, 100) + '...', // Store a summary
+            interest: input.interest.substring(0, 100) + '...',
+            cognitiveAbilities: input.cognitiveAbilities.substring(0, 100) + '...',
+            cvq: input.cvq.substring(0, 100) + '...',
+        },
+        generatedAt: Timestamp.now()
+    };
+    await reportDocRef.set(reportData);
     
     return { success: true, data: suggestions };
   } catch (error) {
