@@ -168,7 +168,7 @@ const assessmentQuestions = {
     { id: 'cvq7', section: 'Language Readiness (Current + Future)', question: 'I understand lectures, videos, or tutorials in English without needing translations.' },
     { id: 'cvq11', section: 'Digital Access & Tech Confidence', question: 'I have regular access to a smartphone with internet.' },
     { id: 'cvq12', section: 'Digital Access & Tech Confidence', question: 'I have access to a laptop or desktop at least 3 days per week.' },
-    { id: 'cvq13', section: 'Digital Access & Tech Confidence', question: 'I feel confident using online learning platforms and productivity tools.' },
+    { id: 'cvq13', section: 'Digital Access & Tech Confidence', 'I feel confident using online learning platforms and productivity tools.' },
     { id: 'cvq18', section: 'Financial & Geographic Readiness', question: 'I am willing to apply for scholarships or part-time jobs to support my career goals.' },
     { id: 'cvq19', section: 'Financial & Geographic Readiness', question: 'I am willing to relocate to another city/state/country for education or work.' },
     { id: 'cvq23', section: 'Parental & Familial Support', question: 'I feel comfortable discussing my career aspirations openly with my parents.' },
@@ -634,7 +634,6 @@ export default function AssessmentPage() {
     }
 
     const totalQuestions = assessmentSections.reduce((total, section) => total + section.questions, 0);
-    const totalTimeInMinutes = assessmentSections.reduce((total, section) => total + section.time, 0);
 
     return (
         <Card>
@@ -748,5 +747,3 @@ export default function AssessmentPage() {
     </div>
   );
 }
-
-    
