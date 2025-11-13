@@ -52,10 +52,19 @@ export function AuthDialog({ mode, onModeChange }: AuthDialogProps) {
       router.push('/auth/callback');
       handleOpenChange(false);
     } catch (error: any) {
+      let description = 'An unexpected error occurred. Please try again.';
+      if (error.code === 'auth/invalid-credential') {
+        description = 'Invalid email or password. Please try again.';
+      } else if (error.code === 'auth/email-already-in-use') {
+        description = 'An account with this email already exists. Please log in instead.';
+      } else if (error.code === 'auth/weak-password') {
+        description = 'The password is too weak. Please use a stronger password.';
+      }
+        
       toast({
         variant: 'destructive',
         title: `${mode === 'login' ? 'Login' : 'Sign Up'} Failed`,
-        description: error.message,
+        description: description,
       });
       setIsLoading(false);
     }
