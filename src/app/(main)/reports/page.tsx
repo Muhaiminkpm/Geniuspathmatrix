@@ -18,25 +18,25 @@ const initialReports = [
         id: 'insightx',
         title: "InsightX Report",
         description: "A detailed breakdown of your personality, interests, and cognitive assessment results.",
-        requiresData: true,
+        requiresAssessment: true,
     },
     {
         id: 'pathxplore',
         title: "PathXplore Report",
         description: "An in-depth analysis of your top career matches, including SWOT analysis and match explanations.",
-        requiresData: true,
+        requiresAssessment: true,
     },
     {
         id: 'goalmint',
         title: "GoalMint Planner",
         description: "Your complete 1, 3, and 5-year SMART goal roadmap for your chosen career path.",
-        requiresData: true,
+        requiresGoalPlan: true,
     },
     {
         id: 'matrix',
         title: "Path-GeniX Career Mastery MatriX",
         description: "A comprehensive summary matrix of your entire journey, from assessment to goals.",
-        requiresData: true,
+        requiresAssessment: true,
     }
 ].map(report => ({ ...report, date: null as Date | null, isAvailable: false }));
 
@@ -60,12 +60,20 @@ export default function ReportsPage() {
         try {
             const res = await getUserData(user.uid);
             const hasAssessmentData = !!res.data?.careerSuggestions;
-            
-            setReports(initialReports.map(report => ({ 
-                ...report, 
-                date: hasAssessmentData ? new Date() : null,
-                isAvailable: report.requiresData ? hasAssessmentData : true,
-            })));
+            const hasGoalPlan = !!res.data?.goalPlan;
+            const generationDate = res.data?.assessment?.updatedAt ? new Date(res.data.assessment.updatedAt) : new Date();
+
+            setReports(initialReports.map(report => {
+                let isAvailable = false;
+                if (report.requiresAssessment) isAvailable = hasAssessmentData;
+                if (report.requiresGoalPlan) isAvailable = hasGoalPlan;
+
+                return { 
+                    ...report, 
+                    date: isAvailable ? generationDate : null,
+                    isAvailable: isAvailable,
+                }
+            }));
 
         } catch (e) {
             toast({
@@ -121,13 +129,12 @@ export default function ReportsPage() {
                                 {report.isAvailable && report.date ? (
                                     <CardDescription>Generated on {format(report.date, "PPP")}</CardDescription>
                                 ) : (
-                                    <CardDescription>Complete the assessment to generate this report.</CardDescription>
+                                    <CardDescription>Data not yet available for this report.</CardDescription>
                                 )}
                             </CardHeader>
                             <CardContent className="p-6 pt-0 sm:pt-6">
                                 <Tooltip>
                                     <TooltipTrigger asChild>
-                                        {/* The div is needed to allow the tooltip to show on a disabled button */}
                                         <div className="inline-block">
                                             <Button 
                                                 onClick={() => handleDownload(report.title)} 
@@ -140,7 +147,10 @@ export default function ReportsPage() {
                                     </TooltipTrigger>
                                     {!report.isAvailable && (
                                         <TooltipContent>
-                                            <p>Complete the InsightX Assessment to unlock this report.</p>
+                                            { report.requiresGoalPlan 
+                                                ? <p>Generate a GoalMint Plan to unlock this report.</p>
+                                                : <p>Complete the InsightX Assessment to unlock this report.</p>
+                                            }
                                         </TooltipContent>
                                     )}
                                 </Tooltip>

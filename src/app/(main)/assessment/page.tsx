@@ -168,7 +168,7 @@ const assessmentQuestions = {
     { id: 'cvq7', section: 'Language Readiness (Current + Future)', question: 'I understand lectures, videos, or tutorials in English without needing translations.' },
     { id: 'cvq11', section: 'Digital Access & Tech Confidence', question: 'I have regular access to a smartphone with internet.' },
     { id: 'cvq12', section: 'Digital Access & Tech Confidence', question: 'I have access to a laptop or desktop at least 3 days per week.' },
-    { id: 'cvq13', section: 'Digital Access & Tech Confidence', 'I feel confident using online learning platforms and productivity tools.' },
+    { id: 'cvq13', section: 'Digital Access & Tech Confidence', question: 'I feel confident using online learning platforms and productivity tools.' },
     { id: 'cvq18', section: 'Financial & Geographic Readiness', question: 'I am willing to apply for scholarships or part-time jobs to support my career goals.' },
     { id: 'cvq19', section: 'Financial & Geographic Readiness', question: 'I am willing to relocate to another city/state/country for education or work.' },
     { id: 'cvq23', section: 'Parental & Familial Support', question: 'I feel comfortable discussing my career aspirations openly with my parents.' },
@@ -254,7 +254,6 @@ export default function AssessmentPage() {
   const [isTestActive, setIsTestActive] = React.useState(false);
   const { toast } = useToast();
   
-  // Use a ref to make sure we don't call submit multiple times
   const submittedRef = React.useRef(false);
 
   React.useEffect(() => {
@@ -273,7 +272,6 @@ export default function AssessmentPage() {
     const maxAttempts = 15; // Poll for 30 seconds
     while (attempts < maxAttempts) {
         const res = await getUserData(userId);
-        // We check for careerSuggestions, as that's what the report generation depends on
         if (res.success && res.data?.careerSuggestions) {
             console.log("Report ready!", res.data);
             return true;
@@ -325,6 +323,7 @@ export default function AssessmentPage() {
             title: 'Report Generation Timed Out',
             description: "Your results are saved, but the report took too long. Please check the PathXplore page in a few minutes.",
         });
+        router.push('/pathxplore'); // Still redirect so user can see results later
       }
     } else {
       setSubmissionStatus('failed');
@@ -389,8 +388,9 @@ export default function AssessmentPage() {
   };
   
   const handleSendParentQuiz = async () => {
+    if (!user) return;
     setIsSendingQuiz(true);
-    const result = await sendParentQuiz({ email: parentEmail, phone: parentPhone });
+    const result = await sendParentQuiz({ email: parentEmail, phone: parentPhone, studentId: user.uid });
     if (result.success) {
         toast({
             title: 'Quiz Sent!',

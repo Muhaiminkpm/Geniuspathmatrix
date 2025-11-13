@@ -1,7 +1,6 @@
 import * as admin from 'firebase-admin';
 import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
-import { applicationDefault } from 'firebase-admin/app';
 
 // This function ensures the Firebase Admin app is initialized only once.
 function getAdminApp() {
@@ -9,17 +8,24 @@ function getAdminApp() {
         return admin.app();
     }
 
+    // Check if the required environment variables are available.
+    // In Firebase App Hosting, these are provided automatically.
+    // Locally, you need to set GOOGLE_APPLICATION_CREDENTIALS.
+    if (process.env.GCLOUD_PROJECT) {
+      return admin.initializeApp();
+    }
+
+    // Fallback for local development if GOOGLE_APPLICATION_CREDENTIALS is not set
+    // This part of the code may not be reached in a deployed environment but is useful for local setup.
     try {
-        // This will use the GOOGLE_APPLICATION_CREDENTIALS environment variable
-        // automatically provided by App Hosting.
+        const serviceAccount = require('../../service-account.json');
         return admin.initializeApp({
-            credential: applicationDefault(),
+            credential: admin.credential.cert(serviceAccount)
         });
     } catch (e) {
         console.error('Firebase Admin Initialization Error:', e);
-        // This block will re-throw the error, ensuring that we don't proceed
-        // with an uninitialized app.
-        throw new Error('Failed to initialize Firebase Admin SDK. Ensure GOOGLE_APPLICATION_CREDENTIALS are set.');
+        console.error('Could not find service-account.json. Please ensure it is present in the root directory for local development, or that GOOGLE_APPLICATION_CREDENTIALS is set.');
+        throw new Error('Failed to initialize Firebase Admin SDK.');
     }
 }
 

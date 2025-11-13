@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -36,17 +37,17 @@ function CareerCard({
         'Threats': ''
     };
 
-    // This regex is complex, but it handles various markdown-like list formats
-    const cleanedText = text.replace(/(\*\*|__)(.*?)\1/g, '$2'); // Remove bold markdown
+    const cleanedText = text.replace(/(\*\*|__)(.*?)\1/g, '$2');
     const lines = cleanedText.split('\n').filter(line => line.trim() !== '');
 
     let currentSection: keyof typeof sections | null = null;
     
     for (const line of lines) {
-        if (line.startsWith('Strengths:')) currentSection = 'Strengths';
-        else if (line.startsWith('Weaknesses:')) currentSection = 'Weaknesses';
-        else if (line.startsWith('Opportunities:')) currentSection = 'Opportunities';
-        else if (line.startsWith('Threats:')) currentSection = 'Threats';
+        const lineLower = line.toLowerCase();
+        if (lineLower.startsWith('strengths:')) currentSection = 'Strengths';
+        else if (lineLower.startsWith('weaknesses:')) currentSection = 'Weaknesses';
+        else if (lineLower.startsWith('opportunities:')) currentSection = 'Opportunities';
+        else if (lineLower.startsWith('threats:')) currentSection = 'Threats';
         else if (currentSection) {
             const item = line.replace(/^[-*]\s*/, '').trim();
             if (item) {
@@ -58,7 +59,7 @@ function CareerCard({
     let html = '';
     for(const [key, value] of Object.entries(sections)) {
         if (value) {
-            html += `<strong>${key}:</strong><ul class="list-disc pl-4 mt-1 mb-2">${value}</ul>`;
+            html += `<strong class="text-sm font-semibold text-card-foreground/90">${key}:</strong><ul class="list-disc pl-5 mt-1 mb-3 text-muted-foreground">${value}</ul>`;
         }
     }
     return html;
@@ -87,8 +88,8 @@ function CareerCard({
           <p className="text-sm text-muted-foreground">{career.matchExplanation}</p>
         </div>
         <div>
-          <h4 className="font-semibold mb-2 text-sm">SWOT Analysis:</h4>
-          <div className="text-sm text-muted-foreground space-y-1" dangerouslySetInnerHTML={{ __html: formatSwot(career.swotAnalysis) }}></div>
+          <h4 className="font-semibold mb-2 text-sm mt-4">SWOT Analysis:</h4>
+          <div className="text-sm space-y-1" dangerouslySetInnerHTML={{ __html: formatSwot(career.swotAnalysis) }}></div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-end">

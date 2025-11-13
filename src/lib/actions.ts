@@ -1,11 +1,11 @@
+
 'use server';
 
 import { suggestCareers, SuggestCareersInput } from '@/ai/flows/ai-career-suggestions';
-import { getSwotAnalysis, SwotAnalysisInput } from '@/ai/flows/swot-analysis-for-career';
 import { generateGoalsForCareer, GenerateGoalsInput } from '@/ai/flows/generate-goals-flow';
 import { getSocraticResponse, MentorInput } from '@/ai/flows/mentor-flow';
 import { db } from '@/lib/firebase-admin';
-import { Timestamp, FieldValue } from 'firebase-admin/firestore';
+import { FieldValue } from 'firebase-admin/firestore';
 
 
 export async function getCareerSuggestions(input: SuggestCareersInput & { userId: string }) {
@@ -21,7 +21,7 @@ export async function getCareerSuggestions(input: SuggestCareersInput & { userId
     await userDocRef.set({
         assessment: {
             ...input,
-            updatedAt: Timestamp.now(),
+            updatedAt: FieldValue.serverTimestamp(),
         },
         careerSuggestions: suggestions,
     }, { merge: true });
@@ -36,25 +36,15 @@ export async function getCareerSuggestions(input: SuggestCareersInput & { userId
             cognitiveAbilities: input.cognitiveAbilities.substring(0, 100) + '...',
             cvq: input.cvq.substring(0, 100) + '...',
         },
-        generatedAt: Timestamp.now()
+        generatedAt: FieldValue.serverTimestamp(),
     };
-    await reportDocRef.set(reportData);
+    await reportDocRef.set(reportData, { merge: true });
     
     return { success: true, data: suggestions };
   } catch (error) {
     console.error('Error getting career suggestions:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to generate career suggestions.';
     return { success: false, error: errorMessage };
-  }
-}
-
-export async function generateSwotAnalysis(input: SwotAnalysisInput) {
-  try {
-    const analysis = await getSwotAnalysis(input);
-    return { success: true, data: analysis };
-  } catch (error) {
-    console.error('Error generating SWOT analysis:', error);
-    return { success: false, error: 'Failed to generate SWOT analysis.' };
   }
 }
 
@@ -68,6 +58,7 @@ export async function getGeneratedGoals(input: GenerateGoalsInput & { userId: st
         const userDocRef = db.collection("users").doc(userId);
         await userDocRef.update({
             goalPlan: goals,
+            'careerSuggestions.0.selected': true, // Mark the first career as selected for goal planning
         });
 
         return { success: true, data: goals };
@@ -79,19 +70,40 @@ export async function getGeneratedGoals(input: GenerateGoalsInput & { userId: st
     }
 }
 
-export async function sendParentQuiz(parentContact: { email?: string, phone?: string }) {
-  // In a real app, you would generate a unique, secure link to the /parent-quiz page
-  // and use a service like Twilio or SendGrid to send it.
-  console.log('Simulating sending parent quiz to:', parentContact);
-  if (!parentContact.email && !parentContact.phone) {
+export async function sendParentQuiz(data: { email?: string, phone?: string, studentId: string }) {
+  console.log('Simulating sending parent quiz for student:', data.studentId);
+  if (!data.email && !data.phone) {
     return { success: false, error: 'No contact information provided.' };
   }
-  const quizLink = '/parent-quiz?uid=<some-unique-token-identifying-student>'; 
-  console.log(`(Pretend) Sending link ${quizLink} to parent.`);
+  // In a real app, you would use a unique token for the student.
+  const quizLink = `/parent-quiz?studentId=${data.studentId}`; 
+  console.log(`(Pretend) Sending link ${quizLink} to parent with contact:`, { email: data.email, phone: data.phone });
   
-  // Simulate success
-  return { success: true, message: 'Parent quiz sent successfully!' };
+  return { success: true, message: 'Parent quiz has been sent successfully!' };
 }
+
+export async function saveParentQuizAnswers(data: { studentId: string, answers: Record<string, string> }) {
+    try {
+        const { studentId, answers } = data;
+        if (!studentId || !answers) {
+            throw new Error('Missing student ID or answers for parent quiz.');
+        }
+
+        const answersCollectionRef = db.collection('parentAnswers');
+        await answersCollectionRef.add({
+            studentId,
+            answers,
+            submittedAt: FieldValue.serverTimestamp(),
+        });
+        
+        return { success: true, message: 'Answers saved successfully.' };
+    } catch (error) {
+        console.error('Error saving parent quiz answers:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to save parent quiz answers.';
+        return { success: false, error: errorMessage };
+    }
+}
+
 
 export async function getMentorResponse(input: MentorInput & { userId: string }) {
   try {
@@ -103,12 +115,13 @@ export async function getMentorResponse(input: MentorInput & { userId: string })
     const userDocRef = db.collection("users").doc(userId);
     const userMessage = input.messages[input.messages.length - 1];
 
+    // Check if the chat history exists, if not, create it before updating
     const userDoc = await userDocRef.get();
-    if (!userDoc.exists || !userDoc.data()?.mentorChat) {
-         // Use set with merge:true to create the field if it doesn't exist
+    if (!userDoc.exists() || !userDoc.data()?.mentorChat) {
          await userDocRef.set({ mentorChat: [] }, { merge: true });
     }
     
+    // Atomically add both the user's message and the model's response
     await userDocRef.update({
         mentorChat: FieldValue.arrayUnion(userMessage, { role: 'model', content: response })
     });
@@ -130,10 +143,21 @@ export async function getUserData(userId: string) {
         const docSnap = await userDocRef.get();
 
         if (docSnap.exists) {
-            return { success: true, data: docSnap.data() };
+            // Firestore admin SDK returns Timestamps, which are not directly serializable
+            // for client components. We need to convert them.
+            const data = docSnap.data();
+            if (data) {
+                // A simple and safe way to convert all timestamps in a nested object
+                const serializableData = JSON.parse(JSON.stringify(data, (key, value) => {
+                    if (value && value.toDate) { // Check if it's a Firestore Timestamp
+                        return value.toDate().toISOString();
+                    }
+                    return value;
+                }));
+                return { success: true, data: serializableData };
+            }
+             return { success: true, data: null };
         } else {
-            // This might happen if there's a delay in Firestore replication after signup.
-            // We'll return null, and the frontend can decide if it should retry.
             return { success: true, data: null };
         }
     } catch (error) {

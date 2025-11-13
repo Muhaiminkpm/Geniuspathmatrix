@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -19,10 +20,10 @@ export default function MentorsPage() {
   const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const [messages, setMessages] = React.useState<Message[]>([]);
-  const [initialMessage, setInitialMessage] = React.useState<Message>({
+  const initialMessage: Message = {
     role: 'model',
     content: "Hello! I am your MentorSuite AI, a Socratic mirror designed to help you reflect on your career path. What's on your mind today?",
-  });
+  };
   const [input, setInput] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
   const [studentProfile, setStudentProfile] = React.useState('');
@@ -101,7 +102,7 @@ export default function MentorsPage() {
     setInput('');
     setIsLoading(true);
 
-    const result = await getMentorResponse({ messages: [initialMessage, ...currentMessages], studentProfile, userId: user.uid });
+    const result = await getMentorResponse({ messages: currentMessages, studentProfile, userId: user.uid });
     
     if (result.success && result.data) {
         const modelMessage: Message = { role: 'model', content: result.data };
@@ -137,7 +138,7 @@ export default function MentorsPage() {
       )
   }
   
-  const displayMessages = [initialMessage, ...messages];
+  const displayMessages = messages.length > 0 ? [initialMessage, ...messages] : [initialMessage];
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
