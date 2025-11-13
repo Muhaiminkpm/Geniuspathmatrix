@@ -18,7 +18,7 @@ export interface Goal {
 
 export interface CareerPath {
     id: string;
-    title: string;
+    title:string;
     description: string;
     matchReasons: string[];
     avgSalary: string;
