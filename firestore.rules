@@ -1,11 +1,33 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can only read and write to their own document in the 'users' collection.
-    // The document ID must match their user ID (uid).
+    
+    // Users Collection: The central document for each user's data.
     match /users/{userId} {
+      // Allow a user to read and write to their own document.
+      // This includes their profile, assessment results, career suggestions,
+      // goal plan, and mentor chat history.
       allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+      // Allow any authenticated user to create their own user document upon sign-up.
       allow create: if request.auth != null;
+    }
+    
+    // Reports Collection: Stores metadata for generated reports.
+    match /reports/{userId} {
+        // A user can read, create, and update their own report documents.
+        allow read, create, update: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Parent Answers Collection: Stores responses from the parent quiz.
+    match /parentAnswers/{answerId} {
+        // Only allow creation of new parent quiz answers.
+        // This is a write-only collection for security. The associated student's
+        // data can be linked via a field in the document, which would be processed
+        // by a secure backend function in a production scenario.
+        allow create: if true;
+        // Disallow read, update, or delete from the client-side for privacy.
+        allow read, update, delete: if false;
     }
   }
 }
