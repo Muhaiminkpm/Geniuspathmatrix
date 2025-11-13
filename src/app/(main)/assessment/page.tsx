@@ -281,6 +281,11 @@ export default function AssessmentPage() {
     }
     return false;
   }, []);
+
+  const handleNext = React.useCallback(() => {
+    setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
   
   const handleSubmit = React.useCallback(async () => {
     if (submittedRef.current) return;
@@ -368,10 +373,6 @@ export default function AssessmentPage() {
     setCurrentStep(1);
   };
 
-  const handleNext = () => {
-    setCurrentStep(prev => Math.min(prev + 1, totalSteps));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
   const handleBack = () => {
     setCurrentStep(prev => Math.max(prev - 1, 0));
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -387,7 +388,7 @@ export default function AssessmentPage() {
     }));
   };
   
-  const handleSendParentQuiz = async () => {
+  const handleSendParentQuiz = React.useCallback(async () => {
     if (!user) return;
     setIsSendingQuiz(true);
     const result = await sendParentQuiz({ email: parentEmail, phone: parentPhone, studentId: user.uid });
@@ -396,6 +397,7 @@ export default function AssessmentPage() {
             title: 'Quiz Sent!',
             description: result.message || 'The parent quiz has been sent successfully.',
         });
+        handleNext(); // Proceed to next step after sending
     } else {
         toast({
             variant: 'destructive',
@@ -404,7 +406,7 @@ export default function AssessmentPage() {
         });
     }
     setIsSendingQuiz(false);
-  };
+  }, [user, parentEmail, parentPhone, toast, handleNext]);
   
   if (authLoading || !user) {
     return (
@@ -506,7 +508,7 @@ export default function AssessmentPage() {
                          <CardFooter>
                            <Button onClick={handleSendParentQuiz} disabled={isSendingQuiz || (!parentEmail && !parentPhone)}>
                              {isSendingQuiz ? <LoadingSpinner className="mr-2" /> : <Mail className="mr-2" />}
-                             Send Parent Quiz
+                             Send Quiz & Continue
                            </Button>
                          </CardFooter>
                        </Card>
@@ -747,3 +749,5 @@ export default function AssessmentPage() {
     </div>
   );
 }
+
+    
