@@ -2,9 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth, db } from '@/lib/firebase/firebase-config'; // Corrected import path
+import { auth } from '@/lib/firebase/firebase-config';
 import { LoadingSpinner } from '@/components/loading-spinner';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { createUserDocument } from '@/lib/actions';
 
 interface AuthContextType {
   user: User | null;
@@ -37,13 +37,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const user = userCredential.user;
     
-    // Save user to Firestore
+    // Create user document in Firestore via a server action
     if (user) {
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
-        email: user.email,
-        createdAt: serverTimestamp(),
-      });
+      await createUserDocument({uid: user.uid, email: user.email});
     }
     
     return userCredential;

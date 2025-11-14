@@ -4,7 +4,7 @@
 import { suggestCareers, SuggestCareersInput } from '@/ai/flows/ai-career-suggestions';
 import { generateGoalsForCareer, GenerateGoalsInput } from '@/ai/flows/generate-goals-flow';
 import { getSocraticResponse, MentorInput } from '@/ai/flows/mentor-flow';
-import { db } from '@/lib/firebase-admin';
+import { adminDb } from '@/lib/firebase/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
 type GeneralInfo = {
@@ -15,6 +15,23 @@ type GeneralInfo = {
     schoolOrCollege: string;
 };
 
+export async function createUserDocument(user: { uid: string; email: string | null }) {
+    try {
+        const userDocRef = adminDb.collection("users").doc(user.uid);
+        await userDocRef.set({
+            uid: user.uid,
+            email: user.email,
+            createdAt: FieldValue.serverTimestamp(),
+        });
+        return { success: true };
+    } catch (error) {
+        console.error('Error creating user document:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to create user document.';
+        return { success: false, error: errorMessage };
+    }
+}
+
+
 export async function getCareerSuggestions(input: SuggestCareersInput & { userId: string, generalInfo: GeneralInfo }) {
   try {
     const userId = input.userId;
@@ -24,7 +41,7 @@ export async function getCareerSuggestions(input: SuggestCareersInput & { userId
     const suggestions = await suggestCareers(input);
     
     // 2. Save assessment data and suggestions to the user's document
-    const userDocRef = db.collection("users").doc(userId);
+    const userDocRef = adminDb.collection("users").doc(userId);
     await userDocRef.set({
         assessment: {
             ...input,
@@ -34,7 +51,7 @@ export async function getCareerSuggestions(input: SuggestCareersInput & { userId
     }, { merge: true });
 
     // 3. Generate and save the summary report
-    const reportDocRef = db.collection("reports").doc(userId);
+    const reportDocRef = adminDb.collection("reports").doc(userId);
     const reportData = {
         userId: userId,
         assessmentSummary: {
@@ -62,7 +79,7 @@ export async function getGeneratedGoals(input: GenerateGoalsInput & { userId: st
 
         const goals = await generateGoalsForCareer(input);
         
-        const userDocRef = db.collection("users").doc(userId);
+        const userDocRef = adminDb.collection("users").doc(userId);
         await userDocRef.update({
             goalPlan: goals,
             'careerSuggestions.0.selected': true, // Mark the first career as selected for goal planning
@@ -96,7 +113,7 @@ export async function saveParentQuizAnswers(data: { studentId: string, answers: 
             throw new Error('Missing student ID or answers for parent quiz.');
         }
 
-        const answersCollectionRef = db.collection('parentAnswers');
+        const answersCollectionRef = adminDb.collection('parentAnswers');
         await answersCollectionRef.add({
             studentId,
             answers,
@@ -119,7 +136,7 @@ export async function getMentorResponse(input: MentorInput & { userId: string })
     
     const response = await getSocraticResponse(input);
     
-    const userDocRef = db.collection("users").doc(userId);
+    const userDocRef = adminDb.collection("users").doc(userId);
     const userMessage = input.messages[input.messages.length - 1];
 
     // Check if the chat history exists, if not, create it before updating
@@ -146,7 +163,7 @@ export async function getUserData(userId: string) {
         if (!userId) {
             return { success: false, error: "User not authenticated." };
         }
-        const userDocRef = db.collection("users").doc(userId);
+        const userDocRef = adminDb.collection("users").doc(userId);
         const docSnap = await userDocRef.get();
 
         if (docSnap.exists) {
