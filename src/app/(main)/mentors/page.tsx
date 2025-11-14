@@ -10,11 +10,16 @@ import { Send, User, Bot, CornerDownLeft } from 'lucide-react';
 import { getMentorResponse, getUserData } from '@/lib/actions';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { cn } from '@/lib/utils';
-import type { Message } from '@/ai/flows/mentor-flow';
+// import type { Message } from '@/ai/flows/mentor-flow';
 import type { CareerSuggestion, GoalPlan } from '@/lib/types';
 import { useAuth } from '@/contexts/auth-context';
 import { useToast } from '@/hooks/use-toast';
 
+// Mock type as AI flow is removed
+type Message = {
+    role: 'user' | 'model';
+    content: string;
+};
 
 export default function MentorsPage() {
   const { user, loading: authLoading } = useAuth();

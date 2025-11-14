@@ -1,71 +1,209 @@
-'use server';
+'use client';
 
-/**
- * @fileOverview A tool for finding and filtering educational options.
- *
- * - findEducationOptions - An AI tool that allows searching for educational programs.
- */
+import * as React from 'react';
+import { AppHeader } from '@/components/layout/app-header';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Send, User, Bot, CornerDownLeft } from 'lucide-react';
+import { getMentorResponse, getUserData } from '@/lib/actions';
+import { LoadingSpinner } from '@/components/loading-spinner';
+import { cn } from '@/lib/utils';
+// import type { Message } from '@/ai/flows/mentor-flow';
+import type { CareerSuggestion, GoalPlan } from '@/lib/types';
+import { useAuth } from '@/contexts/auth-context';
+import { useToast } from '@/hooks/use-toast';
 
-import { ai } from '@/ai/genkit';
-import { z } from 'zod';
+// Mock type as AI flow is removed
+type Message = {
+    role: 'user' | 'model';
+    content: string;
+};
 
-// Mock database of educational institutions. In a real app, this would be a database or an external API.
-const educationDB = [
-  { id: 'stanford_cs', name: 'Stanford University, Computer Science', country: 'USA', city: 'Stanford', annualTuition: 60000, ranking: 2, type: 'university', field: 'Computer Science' },
-  { id: 'mit_cs', name: 'Massachusetts Institute of Technology (MIT), Computer Science', country: 'USA', city: 'Cambridge', annualTuition: 62000, ranking: 1, type: 'university', field: 'Computer Science' },
-  { id: 'cmu_cs', name: 'Carnegie Mellon University, Computer Science', country: 'USA', city: 'Pittsburgh', annualTuition: 63000, ranking: 3, type: 'university', field: 'Computer Science' },
-  { id: 'uiuc_cs', name: 'University of Illinois Urbana-Champaign, Computer Science', country: 'USA', city: 'Champaign', annualTuition: 40000, ranking: 5, type: 'university', field: 'Computer Science' },
-  { id: 'ga_tech_cs', name: 'Georgia Institute of Technology, Computer Science', country: 'USA', city: 'Atlanta', annualTuition: 35000, ranking: 6, type: 'university', field: 'Computer Science' },
-  { id: 'coursera_google_pm', name: 'Google Project Management Certificate on Coursera', country: 'Online', city: 'Online', annualTuition: 500, ranking: null, type: 'certification', field: 'Project Management' },
-  { id: 'udacity_ds', name: 'Udacity Data Scientist Nanodegree', country: 'Online', city: 'Online', annualTuition: 2000, ranking: null, type: 'nanodegree', field: 'Data Science' },
-  { id: 'iit_bombay_cs', name: 'Indian Institute of Technology Bombay, Computer Science', country: 'India', city: 'Mumbai', annualTuition: 3000, ranking: 47, type: 'university', field: 'Computer Science' },
-  { id: 'iit_delhi_cs', name: 'Indian Institute of Technology Delhi, Computer Science', country: 'India', city: 'Delhi', annualTuition: 3000, ranking: 48, type: 'university', field: 'Computer Science' },
-];
+export default function MentorsPage() {
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const [messages, setMessages] = React.useState<Message[]>([]);
+  const initialMessage: Message = {
+    role: 'model',
+    content: "Hello! I am your MentorSuite AI, a Socratic mirror designed to help you reflect on your career path. What's on your mind today?",
+  };
+  const [input, setInput] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [studentProfile, setStudentProfile] = React.useState('');
+  const [isDataLoading, setIsDataLoading] = React.useState(true);
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
-const EducationOptionsSchema = z.object({
-    fieldOfStudy: z.string().describe("The field of study the user is interested in, e.g., 'Computer Science', 'Data Science'."),
-    country: z.string().optional().describe("The country to search for options in, e.g., 'USA', 'India', 'Online'."),
-    maxTuition: z.number().optional().describe("The maximum annual tuition fee the user can afford."),
-    programType: z.enum(['university', 'certification', 'nanodegree']).optional().describe("The type of program to search for."),
-});
+  React.useEffect(() => {
+    async function loadData() {
+      if (authLoading) return;
+      if (!user) {
+        setIsDataLoading(false);
+        return;
+      }
+      
+      setIsDataLoading(true);
+      try {
+        const res = await getUserData(user.uid);
+        if (res.success && res.data) {
+            let profile = "Student's Path-GeniX Profile:\n\n";
+            if (res.data.careerSuggestions) {
+                const results: CareerSuggestion[] = res.data.careerSuggestions;
+                profile += "=== PathXplore Career Suggestions ===\n";
+                results.slice(0, 3).forEach((career, index) => {
+                    profile += `${index + 1}. ${career.careerName} (Top Match: ${index === 0})\n`;
+                    profile += `   - Match Explanation: ${career.matchExplanation}\n`;
+                });
+                profile += "\n";
+            }
 
-export const findEducationOptions = ai.defineTool(
-    {
-        name: 'findEducationOptions',
-        description: 'Finds educational options like universities or online courses based on various criteria. Useful for suggesting specific academic paths.',
-        inputSchema: EducationOptionsSchema,
-        outputSchema: z.array(z.object({
-            name: z.string(),
-            description: z.string(),
-        })),
-    },
-    async (input) => {
-        console.log(`[findEducationOptions] Searching with input:`, input);
-        let results = educationDB.filter(option => 
-            option.field.toLowerCase().includes(input.fieldOfStudy.toLowerCase())
-        );
+            if (res.data.goalPlan) {
+                const goals: GoalPlan = res.data.goalPlan;
+                profile += "=== GoalMint Plan ===\n";
+                Object.entries(goals).forEach(([timeframe, goalList]) => {
+                    profile += `**${timeframe.replace('-', ' ')} Goals:**\n`;
+                    goalList.forEach(goal => {
+                    profile += `   - [${goal.category}] ${goal.title}\n`;
+                    });
+                });
+                profile += "\n";
+            }
+            setStudentProfile(profile);
 
-        if (input.country) {
-            results = results.filter(option => option.country === input.country);
+            if (res.data.mentorChat) {
+                setMessages(res.data.mentorChat);
+            }
         }
-        if (input.maxTuition) {
-            results = results.filter(option => option.annualTuition <= input.maxTuition);
-        }
-        if (input.programType) {
-            results = results.filter(option => option.type === input.programType);
-        }
-        
-        // Sort by ranking (best first), putting unranked items last
-        results.sort((a, b) => {
-            if (a.ranking === null) return 1;
-            if (b.ranking === null) return -1;
-            return a.ranking - b.ranking;
+      } catch (e) {
+        toast({
+            variant: 'destructive',
+            title: 'Could not load data',
+            description: 'There was a problem loading your profile data.',
         });
-
-        // Return a simplified summary for the AI
-        return results.slice(0, 5).map(option => ({ // Limit to top 5 results
-            name: option.name,
-            description: `Type: ${option.type}, Location: ${option.city}, ${option.country}, Annual Tuition: $${option.annualTuition}, Ranking: ${option.ranking || 'N/A'}`
-        }));
+        setStudentProfile("Could not load student profile data.");
+      } finally {
+        setIsDataLoading(false);
+      }
     }
-);
+    loadData();
+  }, [user, authLoading, toast]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  React.useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
+  const handleSendMessage = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!input.trim() || isLoading || !user) return;
+
+    const userMessage: Message = { role: 'user', content: input };
+    const currentMessages = [...messages, userMessage];
+    setMessages(currentMessages);
+    setInput('');
+    setIsLoading(true);
+
+    const result = await getMentorResponse({ messages: currentMessages, studentProfile, userId: user.uid });
+    
+    if (result.success && result.data) {
+        const modelMessage: Message = { role: 'model', content: result.data };
+        setMessages(prev => [...prev, modelMessage]);
+    } else {
+        const errorMessage: Message = { role: 'model', content: "I'm sorry, I encountered an error and couldn't process your message. Please try again." };
+        setMessages(prev => [...prev, errorMessage]);
+         toast({
+            variant: 'destructive',
+            title: 'Mentor AI Error',
+            description: result.error || 'Failed to get a response.',
+        });
+    }
+
+    setIsLoading(false);
+  };
+  
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
+    }
+  };
+  
+  if (authLoading || isDataLoading) {
+      return (
+        <div className="flex min-h-0 flex-1 flex-col">
+            <AppHeader title="MentorSuite AI" />
+            <main className="flex-1 flex items-center justify-center">
+                <LoadingSpinner className="h-10 w-10" />
+            </main>
+        </div>
+      )
+  }
+  
+  const displayMessages = messages.length > 0 ? [initialMessage, ...messages] : [initialMessage];
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <AppHeader title="MentorSuite AI" />
+      <main className="flex-1 p-4 md:p-6 lg:p-8 flex flex-col">
+        <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
+          <Card className="flex-1 flex flex-col">
+              <CardHeader>
+                  <CardTitle className="font-headline">Your Socratic Mirror</CardTitle>
+                  <CardDescription>
+                      Engage in a reflective conversation to explore your career and educational path.
+                  </CardDescription>
+              </CardHeader>
+            <CardContent className="p-6 pt-0 flex-1 flex flex-col">
+                <div className="flex-1 space-y-6 overflow-y-auto pr-4 -mr-4">
+                    {displayMessages.map((message, index) => (
+                        <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? 'justify-end' : '')}>
+                            {message.role === 'model' && <Bot className="h-8 w-8 text-primary flex-shrink-0" />}
+                            <div className={cn("max-w-lg rounded-xl p-4 text-sm whitespace-pre-wrap", message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                                {message.content}
+                            </div>
+                            {message.role === 'user' && <User className="h-8 w-8 text-muted-foreground flex-shrink-0" />}
+                        </div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                     {isLoading && (
+                        <div className="flex items-center gap-4 p-4">
+                            <Bot className="h-8 w-8 text-primary flex-shrink-0 animate-pulse" />
+                            <div className="bg-muted p-4 rounded-xl">
+                                <LoadingSpinner className="h-5 w-5" />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </CardContent>
+            <div className="p-4 border-t">
+                <form onSubmit={handleSendMessage} className="relative">
+                    <Textarea
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder={user ? "Ask me anything about your career path..." : "Please log in to chat with the mentor."}
+                        className="pr-20 min-h-[52px] resize-none"
+                        disabled={isLoading || !user}
+                    />
+                    <div className="absolute top-1/2 right-3 -translate-y-1/2 flex items-center gap-2">
+                        <p className="text-xs text-muted-foreground hidden md:block">
+                            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                                <span className="text-xs">Shift +</span><CornerDownLeft className="h-3 w-3" />
+                            </kbd> for new line
+                        </p>
+                        <Button type="submit" size="icon" disabled={isLoading || !input.trim() || !user}>
+                            <Send className="h-5 w-5" />
+                            <span className="sr-only">Send Message</span>
+                        </Button>
+                    </div>
+                </form>
+            </div>
+          </Card>
+        </div>
+      </main>
+    </div>
+  );
+}

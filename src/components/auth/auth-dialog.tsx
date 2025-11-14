@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -52,8 +53,16 @@ export function AuthDialog({ mode, onModeChange }: AuthDialogProps) {
       router.push('/auth/callback');
       handleOpenChange(false);
     } catch (error: any) {
-      // Display the specific Firebase error code for debugging
-      const description = error.message || 'An unexpected error occurred. Please try again.';
+      // Provide more specific error messages
+      let description = 'An unexpected error occurred. Please try again.';
+      if (error.code === 'auth/invalid-credential' && mode === 'signup') {
+        description = 'Sign-up failed. This may be because the Email/Password sign-in method is not enabled in your Firebase project. Please enable it in the Firebase Console under Authentication > Sign-in method.';
+      } else if (error.code === 'auth/invalid-credential' && mode === 'login') {
+          description = 'Login failed. Please check your email and password and try again.';
+      }
+       else if (error.message) {
+        description = error.message;
+      }
         
       toast({
         variant: 'destructive',

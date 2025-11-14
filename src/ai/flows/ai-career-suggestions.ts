@@ -1,77 +1,209 @@
-'use server';
+'use client';
 
-/**
- * @fileOverview An AI-powered career suggestion flow based on student assessment results.
- *
- * - suggestCareers - A function that suggests potential careers.
- * - SuggestCareersInput - The input type for the suggestCareers function.
- * - SuggestCareersOutput - The return type for the suggestCareers function.
- */
+import * as React from 'react';
+import { AppHeader } from '@/components/layout/app-header';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { Send, User, Bot, CornerDownLeft } from 'lucide-react';
+import { getMentorResponse, getUserData } from '@/lib/actions';
+import { LoadingSpinner } from '@/components/loading-spinner';
+import { cn } from '@/lib/utils';
+// import type { Message } from '@/ai/flows/mentor-flow';
+import type { CareerSuggestion, GoalPlan } from '@/lib/types';
+import { useAuth } from '@/contexts/auth-context';
+import { useToast } from '@/hooks/use-toast';
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+// Mock type as AI flow is removed
+type Message = {
+    role: 'user' | 'model';
+    content: string;
+};
 
-const SuggestCareersInputSchema = z.object({
-  personality: z
-    .string()
-    .describe('The personality assessment results (Big Five - OCEAN).'),
-  interest: z.string().describe('The interest assessment results (RIASEC).'),
-  cognitiveAbilities: z
-    .string()
-    .describe('The cognitive abilities assessment results (VAT).'),
-  selfReportedSkills: z
-    .string()
-    .describe('The self-reported skills of the student.'),
-  cvq: z.string().describe('The Contextual Viability Quotient results, which includes financial, geographic, and cultural constraints. These are important filters.'),
-});
-export type SuggestCareersInput = z.infer<typeof SuggestCareersInputSchema>;
+export default function MentorsPage() {
+  const { user, loading: authLoading } = useAuth();
+  const { toast } = useToast();
+  const [messages, setMessages] = React.useState<Message[]>([]);
+  const initialMessage: Message = {
+    role: 'model',
+    content: "Hello! I am your MentorSuite AI, a Socratic mirror designed to help you reflect on your career path. What's on your mind today?",
+  };
+  const [input, setInput] = React.useState('');
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [studentProfile, setStudentProfile] = React.useState('');
+  const [isDataLoading, setIsDataLoading] = React.useState(true);
+  const messagesEndRef = React.useRef<HTMLDivElement>(null);
 
-const CareerSuggestionSchema = z.object({
-  careerName: z.string().describe('The name of the suggested career.'),
-  careerDescription: z.string().describe('A brief description of the career.'),
-  swotAnalysis: z.string().describe('A detailed SWOT analysis of the career path for the student, considering their profile. Use bullet points for each section. The output should be in markdown format.'),
-  matchExplanation: z.string().describe("An explanation of why this career is a good match based on the user's assessment results (personality, interests, skills) and constraints (CVQ)."),
-});
+  React.useEffect(() => {
+    async function loadData() {
+      if (authLoading) return;
+      if (!user) {
+        setIsDataLoading(false);
+        return;
+      }
+      
+      setIsDataLoading(true);
+      try {
+        const res = await getUserData(user.uid);
+        if (res.success && res.data) {
+            let profile = "Student's Path-GeniX Profile:\n\n";
+            if (res.data.careerSuggestions) {
+                const results: CareerSuggestion[] = res.data.careerSuggestions;
+                profile += "=== PathXplore Career Suggestions ===\n";
+                results.slice(0, 3).forEach((career, index) => {
+                    profile += `${index + 1}. ${career.careerName} (Top Match: ${index === 0})\n`;
+                    profile += `   - Match Explanation: ${career.matchExplanation}\n`;
+                });
+                profile += "\n";
+            }
 
-const SuggestCareersOutputSchema = z.array(CareerSuggestionSchema).min(10).describe('A list of at least 10 career suggestions based on the input, with the best match as the first item.');
-export type SuggestCareersOutput = z.infer<typeof SuggestCareersOutputSchema>;
+            if (res.data.goalPlan) {
+                const goals: GoalPlan = res.data.goalPlan;
+                profile += "=== GoalMint Plan ===\n";
+                Object.entries(goals).forEach(([timeframe, goalList]) => {
+                    profile += `**${timeframe.replace('-', ' ')} Goals:**\n`;
+                    goalList.forEach(goal => {
+                    profile += `   - [${goal.category}] ${goal.title}\n`;
+                    });
+                });
+                profile += "\n";
+            }
+            setStudentProfile(profile);
 
-export async function suggestCareers(input: SuggestCareersInput): Promise<SuggestCareersOutput> {
-  return suggestCareersFlow(input);
-}
+            if (res.data.mentorChat) {
+                setMessages(res.data.mentorChat);
+            }
+        }
+      } catch (e) {
+        toast({
+            variant: 'destructive',
+            title: 'Could not load data',
+            description: 'There was a problem loading your profile data.',
+        });
+        setStudentProfile("Could not load student profile data.");
+      } finally {
+        setIsDataLoading(false);
+      }
+    }
+    loadData();
+  }, [user, authLoading, toast]);
 
-const suggestCareersPrompt = ai.definePrompt({
-  name: 'suggestCareersPrompt',
-  input: {schema: SuggestCareersInputSchema},
-  output: {schema: SuggestCareersOutputSchema},
-  prompt: `You are a pragmatic and experienced AI career advisor with a deep understanding of future job market trends. Your primary goal is to suggest reliable, in-demand, and future-proof careers with strong long-term market viability. You must consider the rise of AI and automation, and suggest roles that are either newly emerging due to these trends or are time-tested professions that require skills less likely to be automated (e.g., complex problem-solving, creativity, emotional intelligence, strategy).
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
-Based on the following assessment results, suggest at least 10 potential careers that align with the student's profile, with the best match sorted as the first item in the array.
+  React.useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
 
-Crucially, you must use the CVQ results as a filter. If the CVQ indicates significant constraints (e.g., financial limitations, unwillingness to relocate), do not suggest careers that would be impractical.
+  const handleSendMessage = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!input.trim() || isLoading || !user) return;
 
-Personality: {{{personality}}}
-Interest: {{{interest}}}
-Cognitive Abilities: {{{cognitiveAbilities}}}
-Self-Reported Skills: {{{selfReportedSkills}}}
-CVQ (Constraints): {{{cvq}}}
+    const userMessage: Message = { role: 'user', content: input };
+    const currentMessages = [...messages, userMessage];
+    setMessages(currentMessages);
+    setInput('');
+    setIsLoading(true);
 
-For each suggestion, provide:
-1. The career name.
-2. A brief description.
-3. A detailed SWOT analysis (Strengths, Weaknesses, Opportunities, Threats) for the student in this career. Use markdown bullet points for each section.
-4. A detailed explanation of why it's a good match, referencing specific traits from the assessments AND how it aligns with the constraints from the CVQ.
-`, 
-});
+    const result = await getMentorResponse({ messages: currentMessages, studentProfile, userId: user.uid });
+    
+    if (result.success && result.data) {
+        const modelMessage: Message = { role: 'model', content: result.data };
+        setMessages(prev => [...prev, modelMessage]);
+    } else {
+        const errorMessage: Message = { role: 'model', content: "I'm sorry, I encountered an error and couldn't process your message. Please try again." };
+        setMessages(prev => [...prev, errorMessage]);
+         toast({
+            variant: 'destructive',
+            title: 'Mentor AI Error',
+            description: result.error || 'Failed to get a response.',
+        });
+    }
 
-const suggestCareersFlow = ai.defineFlow(
-  {
-    name: 'suggestCareersFlow',
-    inputSchema: SuggestCareersInputSchema,
-    outputSchema: SuggestCareersOutputSchema,
-  },
-  async input => {
-    const {output} = await suggestCareersPrompt(input);
-    return output!;
+    setIsLoading(false);
+  };
+  
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSendMessage();
+    }
+  };
+  
+  if (authLoading || isDataLoading) {
+      return (
+        <div className="flex min-h-0 flex-1 flex-col">
+            <AppHeader title="MentorSuite AI" />
+            <main className="flex-1 flex items-center justify-center">
+                <LoadingSpinner className="h-10 w-10" />
+            </main>
+        </div>
+      )
   }
-);
+  
+  const displayMessages = messages.length > 0 ? [initialMessage, ...messages] : [initialMessage];
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <AppHeader title="MentorSuite AI" />
+      <main className="flex-1 p-4 md:p-6 lg:p-8 flex flex-col">
+        <div className="max-w-4xl mx-auto w-full flex-1 flex flex-col">
+          <Card className="flex-1 flex flex-col">
+              <CardHeader>
+                  <CardTitle className="font-headline">Your Socratic Mirror</CardTitle>
+                  <CardDescription>
+                      Engage in a reflective conversation to explore your career and educational path.
+                  </CardDescription>
+              </CardHeader>
+            <CardContent className="p-6 pt-0 flex-1 flex flex-col">
+                <div className="flex-1 space-y-6 overflow-y-auto pr-4 -mr-4">
+                    {displayMessages.map((message, index) => (
+                        <div key={index} className={cn("flex items-start gap-4", message.role === 'user' ? 'justify-end' : '')}>
+                            {message.role === 'model' && <Bot className="h-8 w-8 text-primary flex-shrink-0" />}
+                            <div className={cn("max-w-lg rounded-xl p-4 text-sm whitespace-pre-wrap", message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
+                                {message.content}
+                            </div>
+                            {message.role === 'user' && <User className="h-8 w-8 text-muted-foreground flex-shrink-0" />}
+                        </div>
+                    ))}
+                    <div ref={messagesEndRef} />
+                     {isLoading && (
+                        <div className="flex items-center gap-4 p-4">
+                            <Bot className="h-8 w-8 text-primary flex-shrink-0 animate-pulse" />
+                            <div className="bg-muted p-4 rounded-xl">
+                                <LoadingSpinner className="h-5 w-5" />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </CardContent>
+            <div className="p-4 border-t">
+                <form onSubmit={handleSendMessage} className="relative">
+                    <Textarea
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder={user ? "Ask me anything about your career path..." : "Please log in to chat with the mentor."}
+                        className="pr-20 min-h-[52px] resize-none"
+                        disabled={isLoading || !user}
+                    />
+                    <div className="absolute top-1/2 right-3 -translate-y-1/2 flex items-center gap-2">
+                        <p className="text-xs text-muted-foreground hidden md:block">
+                            <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+                                <span className="text-xs">Shift +</span><CornerDownLeft className="h-3 w-3" />
+                            </kbd> for new line
+                        </p>
+                        <Button type="submit" size="icon" disabled={isLoading || !input.trim() || !user}>
+                            <Send className="h-5 w-5" />
+                            <span className="sr-only">Send Message</span>
+                        </Button>
+                    </div>
+                </form>
+            </div>
+          </Card>
+        </div>
+      </main>
+    </div>
+  );
+}

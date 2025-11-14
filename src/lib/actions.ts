@@ -1,9 +1,9 @@
 
 'use server';
 
-import { suggestCareers, SuggestCareersInput } from '@/ai/flows/ai-career-suggestions';
-import { generateGoalsForCareer, GenerateGoalsInput } from '@/ai/flows/generate-goals-flow';
-import { getSocraticResponse, MentorInput } from '@/ai/flows/mentor-flow';
+// import { suggestCareers, SuggestCareersInput } from '@/ai/flows/ai-career-suggestions';
+// import { generateGoalsForCareer, GenerateGoalsInput } from '@/ai/flows/generate-goals-flow';
+// import { getSocraticResponse, MentorInput } from '@/ai/flows/mentor-flow';
 import { adminDb } from '@/lib/firebase/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
@@ -14,6 +14,12 @@ type GeneralInfo = {
     place: string;
     schoolOrCollege: string;
 };
+
+// Define types here as imports are commented out
+type SuggestCareersInput = any;
+type GenerateGoalsInput = any;
+type MentorInput = any;
+
 
 export async function createUserDocument(user: { uid: string; email: string | null }) {
     try {
@@ -38,8 +44,9 @@ export async function getCareerSuggestions(input: SuggestCareersInput & { userId
     if (!userId) throw new Error("User not authenticated.");
 
     // 1. Get career suggestions from the AI flow
-    const suggestions = await suggestCareers(input);
-    
+    // const suggestions = await suggestCareers(input);
+    const suggestions = [{careerName: 'Mock Career', careerDescription: 'A mock career.', swotAnalysis: 'Strengths: Mock, Weaknesses: Mock, Opportunities: Mock, Threats: Mock', matchExplanation: 'This is a mock career.'}];
+
     // 2. Save assessment data and suggestions to the user's document
     const userDocRef = adminDb.collection("users").doc(userId);
     await userDocRef.set({
@@ -77,7 +84,12 @@ export async function getGeneratedGoals(input: GenerateGoalsInput & { userId: st
         const userId = input.userId;
         if (!userId) throw new Error("User not authenticated.");
 
-        const goals = await generateGoalsForCareer(input);
+        // const goals = await generateGoalsForCareer(input);
+        const goals = {
+            "1-year": [{title: 'Mock Goal 1', category: 'Academic', description: 'A mock academic goal.'}],
+            "3-year": [{title: 'Mock Goal 2', category: 'Skill', description: 'A mock skill goal.'}],
+            "5-year": [{title: 'Mock Goal 3', category: 'Networking', description: 'A mock networking goal.'}],
+        };
         
         const userDocRef = adminDb.collection("users").doc(userId);
         await userDocRef.update({
@@ -134,7 +146,8 @@ export async function getMentorResponse(input: MentorInput & { userId: string })
     const userId = input.userId;
     if (!userId) throw new Error("User not authenticated.");
     
-    const response = await getSocraticResponse(input);
+    // const response = await getSocraticResponse(input);
+    const response = "This is a mock response from the mentor AI. The AI functionality has been temporarily disabled to resolve a dependency issue.";
     
     const userDocRef = adminDb.collection("users").doc(userId);
     const userMessage = input.messages[input.messages.length - 1];
