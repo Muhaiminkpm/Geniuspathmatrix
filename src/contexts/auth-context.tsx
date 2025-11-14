@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth, db } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase/firebase-config'; // Corrected import path
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
