@@ -4,19 +4,24 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { getAuth } from 'firebase-admin/auth';
 
 // This function ensures the Firebase Admin app is initialized only once.
-function getAdminApp() {
-  if (admin.apps.length > 0) {
-    return admin.apps[0] as admin.app.App;
+if (!admin.apps.length) {
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        // Replace newline characters from environment variable
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      }),
+      databaseURL: process.env.FIREBASE_DATABASE_URL,
+    });
+  } catch (error) {
+    console.error('Firebase admin initialization error:', error);
   }
-
-  // In a real production environment, you would use a service account.
-  // For local development and Firebase emulators, this basic initialization is sufficient.
-  const app = admin.initializeApp();
-  return app;
 }
 
-const app = getAdminApp();
-const auth = getAuth(app);
-const db = getFirestore(app);
+
+const auth = getAuth();
+const db = getFirestore();
 
 export { auth, db };

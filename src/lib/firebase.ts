@@ -1,3 +1,4 @@
+
 'use client';
 
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
@@ -5,12 +6,13 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCxsVzMe-0CUS1-2tO803SV3cDx5cTIaiQ",
-  authDomain: "studio-2237527215-3623e.firebaseapp.com",
-  projectId: "studio-2237527215-3623e",
-  storageBucket: "studio-2237527215-3623e.appspot.com",
+  apiKey: "YOUR_WEB_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
   messagingSenderId: "1019072312283",
-  appId: "1:1019072312283:web:38a3d787acca7fece26dfe"
+  appId: "YOUR_APP_ID",
+  databaseURL: "YOUR_DATABASE_URL"
 };
 
 // Initialize Firebase
