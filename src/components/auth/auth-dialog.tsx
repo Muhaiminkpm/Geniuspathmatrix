@@ -71,7 +71,9 @@ export function AuthDialog({ mode, onModeChange }: AuthDialogProps) {
         await handleLogin();
       } else {
         // Signup with email/password, and pass extra details
-        await signup(email, password, { username, phone });
+        // If email is not provided, we generate a dummy one for Firebase Auth
+        const authEmail = email || `${username}@path-genix.user`;
+        await signup(authEmail, password, { username, phone, email });
       }
       router.push('/auth/callback');
       handleOpenChange(false);
@@ -81,6 +83,8 @@ export function AuthDialog({ mode, onModeChange }: AuthDialogProps) {
           description = 'Login failed. Please check your credentials and try again.';
       } else if (error.code === 'auth/email-already-in-use') {
           description = 'This email is already in use. Please try logging in or use a different email.';
+      } else if (error.code === 'auth/invalid-email') {
+          description = 'The generated email for your username is invalid. Please try a different username.'
       } else if (error.message) {
         description = error.message;
       }
@@ -127,24 +131,24 @@ export function AuthDialog({ mode, onModeChange }: AuthDialogProps) {
           {mode === 'signup' && (
             <>
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com (for recovery)"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="phone">Phone Number (Optional)</Label>
+                <Label htmlFor="phone">Phone Number</Label>
                 <Input
                   id="phone"
                   type="tel"
                   placeholder="Your phone number"
+                  required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="email">Email (Optional)</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com (for recovery)"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
             </>
