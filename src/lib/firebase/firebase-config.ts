@@ -2,8 +2,8 @@
 'use client';
 
 import { initializeApp, getApps, getApp, FirebaseApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getAuth, GoogleAuthProvider, Auth } from 'firebase/auth';
+import { getFirestore, Firestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -23,9 +23,25 @@ if (!getApps().length) {
   app = getApp();
 }
 
-const auth = getAuth(app);
-const db = getFirestore(app);
+let auth: Auth;
+let db: Firestore;
+
+// Functions to get the instances on demand (client-side)
+function getFirebaseAuth() {
+  if (!auth) {
+    auth = getAuth(app);
+  }
+  return auth;
+}
+
+function getFirebaseDb() {
+  if (!db) {
+    db = getFirestore(app);
+  }
+  return db;
+}
+
+
 const googleProvider = new GoogleAuthProvider();
 
-export { app, auth, db, googleProvider };
-
+export { app, getFirebaseAuth, getFirebaseDb, googleProvider };

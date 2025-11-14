@@ -1,8 +1,9 @@
+
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { onAuthStateChanged, User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from 'firebase/auth';
-import { auth } from '@/lib/firebase/firebase-config';
+import { getFirebaseAuth } from '@/lib/firebase/firebase-config';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { createUserDocument } from '@/lib/actions';
 
@@ -21,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const auth = getFirebaseAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
       setLoading(false);
@@ -30,10 +32,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = (email: string, pass: string) => {
+    const auth = getFirebaseAuth();
     return signInWithEmailAndPassword(auth, email, pass);
   };
   
   const signup = async (email: string, pass: string) => {
+    const auth = getFirebaseAuth();
     const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
     const user = userCredential.user;
     
@@ -46,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = () => {
+    const auth = getFirebaseAuth();
     return signOut(auth);
   };
 
