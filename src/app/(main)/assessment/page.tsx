@@ -142,7 +142,7 @@ export default function AssessmentPage() {
             if (res.success && res.data) {
                 setAssessmentData(res.data as any);
             } else {
-                toast({ variant: 'destructive', title: 'Could not load assessment data.' });
+                toast({ variant: 'destructive', title: 'Could not load assessment data.', description: res.error || 'Please try seeding the database from the home page.' });
             }
         } catch (e) {
             toast({ variant: 'destructive', title: 'Error loading assessment data.' });
@@ -324,16 +324,19 @@ export default function AssessmentPage() {
 
   if (!assessmentData) {
       return (
-          <div className="flex h-screen items-center justify-center">
-              <Card>
-                  <CardHeader>
-                      <CardTitle>Assessment Not Available</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                      <p>The assessment data could not be loaded. Please try again later.</p>
-                  </CardContent>
-              </Card>
-          </div>
+        <div className="flex min-h-0 flex-1 flex-col">
+            <AppHeader title="InsightX Assessment" />
+             <main className="flex-1 p-4 md:p-6 lg:p-8 flex items-center justify-center">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Assessment Not Available</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <p>The assessment data could not be loaded. Please try again later or contact support.</p>
+                    </CardContent>
+                </Card>
+            </main>
+        </div>
       )
   }
 
