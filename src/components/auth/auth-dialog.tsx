@@ -146,7 +146,7 @@ export function AuthDialog({ mode, onModeChange }: AuthDialogProps) {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com (for recovery)"
+                  placeholder="m@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
