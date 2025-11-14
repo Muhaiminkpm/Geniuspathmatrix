@@ -1,5 +1,7 @@
 
 import * as admin from 'firebase-admin';
+import { getFirestore, Firestore } from 'firebase-admin/firestore';
+import { getAuth, Auth } from 'firebase-admin/auth';
 
 // This prevents re-initializing the app on every hot-reload in development
 if (!admin.apps.length) {
@@ -17,7 +19,7 @@ if (!admin.apps.length) {
   }
 }
 
-const adminDb = admin.firestore();
-const adminAuth = admin.auth();
+const adminDb: Firestore = getFirestore();
+const adminAuth: Auth = getAuth();
 
 export { admin, adminDb, adminAuth };
