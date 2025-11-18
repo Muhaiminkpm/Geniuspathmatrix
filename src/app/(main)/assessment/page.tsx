@@ -700,5 +700,3 @@ export default function AssessmentPage() {
     </div>
   );
 }
-
-    
