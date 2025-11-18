@@ -7,6 +7,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 
 
 type GeneralInfo = {
+    name: string;
     dob: string;
     gender: string;
     classOfStudy: string;
@@ -360,3 +361,5 @@ export async function seedDatabase() {
         return { success: false, error: "Failed to seed database." };
     }
 }
+
+    

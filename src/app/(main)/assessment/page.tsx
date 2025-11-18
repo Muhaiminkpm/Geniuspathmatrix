@@ -178,6 +178,7 @@ export default function AssessmentPage() {
   });
   const [submissionStatus, setSubmissionStatus] = React.useState<'idle' | 'submitting' | 'polling' | 'failed' | 'success'>('idle');
   const [isSendingQuiz, setIsSendingQuiz] = React.useState(false);
+  const [name, setName] = React.useState('');
   const [dob, setDob] = React.useState<Date | undefined>();
   const [gender, setGender] = React.useState('');
   const [classOfStudy, setClassOfStudy] = React.useState('');
@@ -242,6 +243,7 @@ export default function AssessmentPage() {
 
     const formattedAnswers = {
       generalInfo: {
+        name,
         dob: dob ? format(dob, 'yyyy-MM-dd') : '',
         gender,
         classOfStudy,
@@ -282,7 +284,7 @@ export default function AssessmentPage() {
       });
       submittedRef.current = false;
     }
-  }, [user, answers, router, toast, waitForReport, dob, gender, classOfStudy, place, schoolOrCollege]);
+  }, [user, answers, router, toast, waitForReport, name, dob, gender, classOfStudy, place, schoolOrCollege]);
   
   React.useEffect(() => {
     if (!isTestActive) return;
@@ -370,6 +372,11 @@ export default function AssessmentPage() {
                     <CardDescription>Please provide some basic information about yourself.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
+                    <div className="space-y-2">
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input id="name" placeholder="Enter your full name" value={name} onChange={e => setName(e.target.value)} />
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                         <div className="space-y-2">
                           <Label htmlFor="dob">Date of Birth</Label>
@@ -386,7 +393,7 @@ export default function AssessmentPage() {
                                 {dob ? format(dob, "PPP") : <span>Pick a date</span>}
                               </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
+                            <PopoverContent className="w-auto p-0" onFocusOutside={(e) => e.preventDefault()} onPointerDownOutside={(e) => e.preventDefault()}>
                               <Calendar
                                 mode="single"
                                 selected={dob}
@@ -680,7 +687,7 @@ export default function AssessmentPage() {
                             Submit & Get My Results
                         </Button>
                     ) : (
-                        <Button onClick={handleNext} size="lg" disabled={isGeneralInfoStep && (!dob || !gender)}>
+                        <Button onClick={handleNext} size="lg" disabled={isGeneralInfoStep && (!dob || !gender || !name)}>
                             Next Section <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                     )}
@@ -693,3 +700,5 @@ export default function AssessmentPage() {
     </div>
   );
 }
+
+    
