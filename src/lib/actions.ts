@@ -38,6 +38,13 @@ type MentorInput = {
 export async function createUserDocument(user: { uid: string; email: string | null, username: string, phone: string }) {
     try {
         const userDocRef = adminDb.collection("users").doc(user.uid);
+        
+        // Check if username already exists
+        const usernameQuery = await adminDb.collection("users").where("username", "==", user.username).limit(1).get();
+        if (!usernameQuery.empty) {
+            throw new Error("Username is already taken. Please choose a different one.");
+        }
+
         await userDocRef.set({
             uid: user.uid,
             email: user.email,
@@ -52,6 +59,35 @@ export async function createUserDocument(user: { uid: string; email: string | nu
         const errorMessage = error instanceof Error ? error.message : 'Failed to create user document.';
         return { success: false, error: errorMessage };
     }
+}
+
+export async function getEmailForUsername(username: string): Promise<{ success: boolean; email?: string; error?: string }> {
+  try {
+    if (!username) {
+      return { success: false, error: 'Username is required.' };
+    }
+
+    const usersRef = adminDb.collection('users');
+    // Usernames are stored in lowercase to ensure case-insensitive uniqueness
+    const snapshot = await usersRef.where('username', '==', username).limit(1).get();
+
+    if (snapshot.empty) {
+      return { success: false, error: 'Invalid username or password.' };
+    }
+
+    const userData = snapshot.docs[0].data();
+    const userEmail = userData.email;
+
+    if (!userEmail) {
+        return { success: false, error: 'No valid email found for this user.' };
+    }
+    
+    return { success: true, email: userEmail };
+
+  } catch (error) {
+    console.error('Error getting email for username:', error);
+    return { success: false, error: 'An internal error occurred.' };
+  }
 }
 
 
@@ -280,86 +316,3 @@ export async function getAppData(docId: string) {
         return { success: false, error: errorMessage };
     }
 }
-
-// This function is for seeding the database with initial data.
-// It is not meant to be a part of the regular application flow.
-export async function seedDatabase() {
-    try {
-        const batch = adminDb.batch();
-
-        const assessmentRef = adminDb.collection('app_data').doc('assessment');
-        batch.set(assessmentRef, {
-            questions: {
-                personality: [
-                    { id: 'p1', question: 'I am the life of the party.' },
-                    { id: 'p2', question: 'I am always prepared.' },
-                    { id: 'p3', question: 'I get stressed out easily.' },
-                    { id: 'p4', question: 'I have a rich vocabulary.' },
-                    { id: 'p5', question: 'I am not interested in other people\'s problems.' },
-                    { id: 'p6', question: 'I leave my belongings around.' },
-                    { id: 'p7', question: 'I am relaxed most of the time.' },
-                    { id: 'p8', question: 'I have difficulty understanding abstract ideas.' },
-                    { id: 'p9', question: 'I feel comfortable around people.' },
-                    { id: 'p10', question: 'I pay attention to details.' }
-                ],
-                interest: [
-                    { id: 'i1', question: 'Building kitchen cabinets' },
-                    { id: 'i2', question: 'Developing a new medicine' },
-                    { id: 'i3', question: 'Writing books or plays' },
-                    { id: 'i4', question: 'Teaching school' },
-                    { id: 'i5', question: 'Buying and selling stocks and bonds' },
-                    { id: 'i6', question: 'Operating a copy machine' },
-                    { id: 'i7', question: 'Assembling electronic parts' },
-                    { id: 'i8', question: 'Doing scientific experiments' },
-                    { id: 'i9', question: 'Singing in a band' },
-                    { id: 'i10', question: 'Helping people with personal or emotional problems' }
-                ],
-                cognitive: [
-                    { id: 'c1', question: 'Which number logically follows this series? 4, 6, 9, 6, 14, 6, ...', options: ['6', '17', '19', '21'] },
-                    { id: 'c2', question: 'A is B\'s sister. C is B\'s mother. D is C\'s father. E is D\'s mother. Then, how is A related to D?', options: ['Grandfather', 'Grandmother', 'Daughter', 'Granddaughter'] },
-                    { id: 'c3', question: 'An animal shelter has a 30% discount on all cats, and a 10% discount on all dogs. If a cat costs $100 and a dog costs $150, what is the total cost for one of each?', options: ['$200', '$205', '$210', '$215'] },
-                    { id: 'c4', question: 'If you rearrange the letters \'CIFAIPC\' you would have the name of a(n):', options: ['City', 'Animal', 'Ocean', 'River'] },
-                    { id: 'c5', question: 'What is the missing number in the series? 2, 5, 10, 17, ?, 37', options: ['24', '26', '28', '30'] }
-                ],
-                skillMapping: [
-                    { id: 's1', question: 'Analyzing data and drawing conclusions' },
-                    { id: 's2', question: 'Leading a team to achieve a goal' },
-                    { id: 's3', question: 'Coming up with creative ideas' },
-                    { id: 's4', question: 'Organizing your work and managing time effectively' },
-                    { id: 's5', question: 'Persuading or influencing others' }
-                ],
-                cvq: [
-                    { id: 'v1', section: 'Independence', question: 'I want to be able to make my own decisions.' },
-                    { id: 'v2', section: 'Independence', question: 'I want to be able to work on my own.' },
-                    { id: 'v3', section: 'Support', question: 'I want a supervisor who backs up the workers with management.' },
-                    { id: 'v4', section: 'Support', question: 'I want the company to administer its policies fairly.' },
-                    { id: 'v5', section: 'Relationships', question: 'I want to have co-workers who are easy to get along with.' },
-                    { id: 'v6', section: 'Relationships', question: 'I want to be able to do things for other people.' },
-                    { id: 'v7', section: 'Working Conditions', question: 'I want to have a job where I do not have to worry about being laid off.' },
-                    { id: 'v8', section: 'Working Conditions', question: 'I want to be busy all the time.' },
-                    { id: 'v9', section: 'Achievement', question: 'I want to make use of my abilities and skills.' },
-                    { id: 'v10', question: 'I want to have a sense of accomplishment from my job.' }
-                ]
-            }
-        });
-
-        const reportsRef = adminDb.collection('app_data').doc('reports');
-        batch.set(reportsRef, {
-            list: [
-              { id: 'pathxplore', title: 'PathXplore Full Report', description: 'A comprehensive report detailing your assessment results and top career matches.', requiresAssessment: true, requiresGoalPlan: false },
-              { id: 'personality', title: 'Personality Deep Dive', description: 'An in-depth look at your personality traits and how they relate to career satisfaction.', requiresAssessment: true, requiresGoalPlan: false },
-              { id: 'goalmint', title: 'GoalMint Action Plan', description: 'A printable version of your personalized 1, 3, and 5-year goal plan.', requiresAssessment: true, requiresGoalPlan: true },
-              { id: 'interview', title: 'Interview Prep Guide', description: 'A guide to help you prepare for interviews for your chosen career path.', requiresAssessment: true, requiresGoalPlan: true },
-            ]
-        });
-
-        await batch.commit();
-        console.log('Database seeded successfully!');
-        return { success: true };
-    } catch (error) {
-        console.error("Error seeding database: ", error);
-        return { success: false, error: "Failed to seed database." };
-    }
-}
-
-    

@@ -43,12 +43,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     
     // Create user document in Firestore via a server action
     if (user) {
-      await createUserDocument({
+      const result = await createUserDocument({
         uid: user.uid, 
-        email: details.email, // Save the real email if provided, otherwise null
+        email: authEmail, // Store the email used for auth (real or dummy)
         username: details.username,
         phone: details.phone
       });
+      // If the username was taken, the server action will throw.
+      // We should delete the just-created Firebase auth user to allow the user to try again.
+      if (!result.success) {
+          await user.delete();
+          throw new Error(result.error);
+      }
     }
     
     return userCredential;

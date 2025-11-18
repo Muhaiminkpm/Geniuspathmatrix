@@ -17,7 +17,7 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { GraduationCap } from 'lucide-react';
-import { adminDb } from '@/lib/firebase/firebase-admin'; // This import is incorrect on the client, but we'll fix the logic.
+import { getEmailForUsername } from '@/lib/actions';
 
 interface AuthDialogProps {
   mode: 'login' | 'signup' | null;
@@ -46,19 +46,21 @@ export function AuthDialog({ mode, onModeChange }: AuthDialogProps) {
   };
 
   const handleLogin = async () => {
-      // This is a simplified login flow. In a real app, you'd query Firestore for the user's email from their username.
-      // For this implementation, we'll assume the user enters their email in the username field for login.
-      // This is a limitation of not having a full backend to resolve username to email.
-      if (!username.includes('@')) {
-          toast({
-              variant: 'destructive',
-              title: 'Login Error',
-              description: 'For login, please enter your email address in the username field. Username-only login is not supported in this mock setup.',
-          });
-          setIsLoading(false);
-          return;
-      }
-      await login(username, password);
+    // Step 1: Get the email associated with the username from our database.
+    const emailResult = await getEmailForUsername(username);
+
+    if (!emailResult.success || !emailResult.email) {
+      toast({
+        variant: 'destructive',
+        title: 'Login Error',
+        description: emailResult.error || 'Invalid username or password.',
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    // Step 2: Use the retrieved email to log in with Firebase.
+    await login(emailResult.email, password);
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,12 +69,11 @@ export function AuthDialog({ mode, onModeChange }: AuthDialogProps) {
 
     try {
       if (mode === 'login') {
-        // We'll use a simplified login that still relies on email behind the scenes
         await handleLogin();
       } else {
         // Signup with email/password, and pass extra details
         // If email is not provided, we generate a dummy one for Firebase Auth
-        const authEmail = email || `${username}@path-genix.user`;
+        const authEmail = email || `${username.toLowerCase()}@path-genix.user`;
         await signup(authEmail, password, { username, phone, email });
       }
       router.push('/auth/callback');
@@ -85,6 +86,8 @@ export function AuthDialog({ mode, onModeChange }: AuthDialogProps) {
           description = 'This email is already in use. Please try logging in or use a different email.';
       } else if (error.code === 'auth/invalid-email') {
           description = 'The generated email for your username is invalid. Please try a different username.'
+      } else if (error.code === 'auth/weak-password') {
+          description = 'The password is too weak. Please use at least 6 characters.';
       } else if (error.message) {
         description = error.message;
       }
