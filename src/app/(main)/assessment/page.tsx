@@ -398,10 +398,10 @@ export default function AssessmentPage() {
                                 mode="single"
                                 selected={dob}
                                 onSelect={setDob}
-                                initialFocus
                                 captionLayout="dropdown-buttons"
                                 fromYear={new Date().getFullYear() - 30}
                                 toYear={new Date().getFullYear() - 10}
+                                initialFocus
                               />
                             </PopoverContent>
                           </Popover>
