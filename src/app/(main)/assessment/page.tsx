@@ -26,10 +26,10 @@ import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescript
 
 
 const assessmentSections = [
-  { id: 'personality', title: 'Personality Assessment', questions: 30, time: 20 * 60, instructions: 'Rate how much each statement describes you on a scale of 1 (Strongly Disagree) to 5 (Strongly Agree).' },
-  { id: 'interest', title: 'Interest Inventory', questions: 20, time: 15 * 60, instructions: 'Indicate how much you would enjoy performing each activity on a scale of 1 (Strongly Dislike) to 5 (Strongly Like).' },
-  { id: 'cognitive', title: 'Cognitive Capability + Skill Mapping', questions: 50, time: 30 * 60, instructions: 'This section has two parts. First, answer 30 cognitive ability questions. Then, self-assess your skills with 20 skill mapping questions.' },
-  { id: 'cvq', title: 'Contextual Viability Quotient (CVQ™)', questions: 20, time: 25 * 60, instructions: 'Rate how much you agree with each statement on a scale of 1 (Strongly Disagree) to 5 (Strongly Agree) for your top career choice.' }
+  { id: 'personality', title: 'Personality Assessment', questions: 20, time: 15 * 60, instructions: 'Rate how much each statement describes you on a scale of 1 (Strongly Disagree) to 5 (Strongly Agree).' },
+  { id: 'interest', title: 'Interest Inventory', questions: 20, time: 10 * 60, instructions: 'Indicate how much you would enjoy performing each activity on a scale of 1 (Strongly Dislike) to 5 (Strongly Like).' },
+  { id: 'cognitive', title: 'Cognitive Capability + Skill Mapping', questions: 40, time: 25 * 60, instructions: 'This section has two parts. First, answer 20 cognitive ability questions. Then, self-assess your skills with 20 skill mapping questions.' },
+  { id: 'cvq', title: 'Contextual Viability Quotient (CVQ™)', questions: 10, time: 10 * 60, instructions: 'Rate how much you agree with each statement on a scale of 1 (Strongly Disagree) to 5 (Strongly Agree) for your top career choice.' }
 ];
 
 const totalTime = assessmentSections.reduce((acc, section) => acc + section.time, 0);
@@ -55,17 +55,7 @@ const assessmentQuestions = {
     { id: 'p17', question: 'I am very imaginative and like to daydream.' },
     { id: 'p18', question: 'I prefer to stick to a schedule and routine.' },
     { id: 'p19', question: 'I usually stay calm, even in stressful situations.' },
-    { id: 'p20', question: 'I prefer to spend my free time alone or with a few close friends.' },
-    { id: 'p21', question: 'I enjoy expressing myself through art, music, or writing.' },
-    { id: 'p22', question: 'I can usually handle unexpected problems without getting upset.' },
-    { id: 'p23', question: 'I like to think deeply about complex ideas.' },
-    { id: 'p24', question: 'I enjoy helping my friends or family when they have a problem.' },
-    { id: 'p25', question: 'My room or study space is often a bit messy.' },
-    { id: 'p26', question: 'I am curious about how things work and why people behave the way they do.' },
-    { id: 'p27', question: 'I prefer to work independently on school projects.' },
-    { id: 'p28', question: 'I get annoyed easily by small things.' },
-    { id: 'p29', question: 'I respect traditional ways of doing things.' },
-    { id: 'p30', question: 'I learn new things quickly.' }
+    { id: 'p20', question: 'I prefer to spend my free time alone or with a few close friends.' }
   ],
   interest: [
     { id: 'i1', question: 'Creating a new game or app idea for my phone.' },
@@ -109,17 +99,7 @@ const assessmentQuestions = {
     { id: 'c17', question: 'Which word is the odd one out: Happy, Sad, Angry, Excited, Sleepy?', options: ['Happy', 'Sad', 'Angry', 'Excited', 'Sleepy'] },
     { id: 'c18', question: 'If 3 friends share 15 chocolates equally, how many chocolates does each friend get?', options: ['3', '5', '10', '15'] },
     { id: 'c19', question: 'Which set of letters completes the pattern: AZ, BY, CX, DW, ?', options: ['EV', 'FU', 'GT', 'HS'] },
-    { id: 'c20', question: 'What is 25% of 80?', options: ['10', '20', '25', '40'] },
-    { id: 'c21', question: 'If \'CAT\' is coded as \'3120\', how would \'DOG\' be coded?', options: ['4157', '4158', '4159', '41510'] },
-    { id: 'c22', question: 'Choose the word that is most similar in meaning to \'Ancient\':', options: ['Modern', 'Old', 'New', 'Fast'] },
-    { id: 'c23', question: 'A square has a side length of 5 cm. What is its perimeter?', options: ['10 cm', '15 cm', '20 cm', '25 cm'] },
-    { id: 'c24', question: 'Which number completes the series: 10, 9, 7, 4, ?', options: ['0', '1', '2', '3'] },
-    { id: 'c25', question: 'If \'North\' is \'West\', then \'East\' is \'____\'?', options: ['North', 'South', 'East', 'West'] },
-    { id: 'c26', question: 'Find the odd one out: Lion, Tiger, Elephant, Wolf, Cheetah.', options: ['Lion', 'Tiger', 'Elephant', 'Wolf', 'Cheetah'] },
-    { id: 'c27', question: 'A class has 30 students. 2/3 of them are boys. How many girls are there?', options: ['10', '15', '20', '25'] },
-    { id: 'c28', question: 'Which letter comes next in the sequence: C, F, I, L, ?', options: ['M', 'N', 'O', 'P'] },
-    { id: 'c29', question: 'If yesterday was Monday, what day is tomorrow?', options: ['Tuesday', 'Wednesday', 'Thursday', 'Friday'] },
-    { id: 'c30', question: 'What is the value of 5^2 - 3^2?', options: ['4', '8', '16', '34'] }
+    { id: 'c20', question: 'What is 25% of 80?', options: ['10', '20', '25', '40'] }
   ],
   skillMapping: [
     { id: 's1', question: 'I am confident sharing my ideas in front of my class.' },
@@ -146,24 +126,14 @@ const assessmentQuestions = {
   cvq: [
     { id: 'v1', section: 'Cultural & Societal Compatibility', question: 'I am free to pursue any career, regardless of family traditions or expectations.' },
     { id: 'v2', section: 'Cultural & Societal Compatibility', question: 'My family does not interfere in my career decision-making.' },
-    { id: 'v3', section: 'Cultural & Societal Compatibility', question: 'Society in my region encourages diversity in career choices.' },
-    { id: 'v4', section: 'Cultural & Societal Compatibility', question: 'I feel confident resisting social pressure when choosing my career.' },
-    { id: 'v5', section: 'Cultural & Societal Compatibility', question: 'I know people in my community who’ve followed careers different from what was expected of them.' },
-    { id: 'v6', section: 'Language Readiness (Current + Future)', question: 'I can currently read, write, and speak in English or the required career language.' },
-    { id: 'v7', section: 'Language Readiness (Current + Future)', question: 'I understand lectures, videos, or tutorials in English without needing translations.' },
-    { id: 'v8', section: 'Language Readiness (Current + Future)', question: 'I believe I can become fluent in English or another required language within 2 years.' },
-    { id: 'v9', section: 'Language Readiness (Current + Future)', question: 'I would avoid certain careers due to language limitations. (reverse scored)' },
-    { id: 'v10', section: 'Language Readiness (Current + Future)', question: 'I am confident in my ability to clear language-based entrance tests or interviews.' },
-    { id: 'v11', section: 'Digital Access & Tech Confidence', question: 'I have regular access to a smartphone with internet.' },
-    { id: 'v12', section: 'Digital Access & Tech Confidence', question: 'I have access to a laptop or desktop at least 3 days per week.' },
-    { id: 'v13', section: 'Digital Access & Tech Confidence', question: 'I feel confident using online learning platforms and productivity tools.' },
-    { id: 'v14', section: 'Digital Access & Tech Confidence', question: 'My learning or career progress is affected due to poor digital access. (reverse scored)' },
-    { id: 'v15', section: 'Digital Access & Tech Confidence', question: 'I know how to register for online certifications or attend virtual internships.' },
-    { id: 'v16', section: 'Financial & Geographic Readiness', question: 'I can afford entrance or coaching exam fees over the next year.' },
-    { id: 'v17', section: 'Financial & Geographic Readiness', question: 'My financial situation may limit my choice of college or career options. (reverse scored)' },
-    { id: 'v18', section: 'Financial & Geographic Readiness', question: 'I am willing to apply for scholarships or part-time jobs to support my career goals.' },
-    { id: 'v19', section: 'Financial & Geographic Readiness', question: 'I am willing to relocate to another city/state/country for education or work.' },
-    { id: 'v20', 'section': 'Financial & Geographic Readiness', question: 'My family is likely to support me if relocation becomes necessary.' }
+    { id: 'v3', section: 'Language Readiness (Current + Future)', question: 'I can currently read, write, and speak in English or the required career language.' },
+    { id: 'v4', section: 'Language Readiness (Current + Future)', question: 'I understand lectures, videos, or tutorials in English without needing translations.' },
+    { id: 'v5', section: 'Digital Access & Tech Confidence', question: 'I have regular access to a smartphone with internet.' },
+    { id: 'v6', section: 'Digital Access & Tech Confidence', question: 'I have access to a laptop or desktop at least 3 days per week.' },
+    { id: 'v7', section: 'Financial & Geographic Readiness', question: 'I can afford entrance or coaching exam fees over the next year.' },
+    { id: 'v8', section: 'Financial & Geographic Readiness', question: 'My financial situation may limit my choice of college or career options. (reverse scored)' },
+    { id: 'v9', section: 'Financial & Geographic Readiness', question: 'I am willing to apply for scholarships or part-time jobs to support my career goals.' },
+    { id: 'v10', 'section': 'Financial & Geographic Readiness', question: 'I am willing to relocate to another city/state/country for education or work.' }
   ]
 };
 
@@ -828,5 +798,3 @@ export default function AssessmentPage() {
     </div>
   );
 }
-
-    
