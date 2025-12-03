@@ -10,6 +10,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { getEducationOptions } from '@/ai/tools/education-options-tool';
 
 const MessageSchema = z.object({
     role: z.enum(['user', 'model']),
@@ -54,6 +55,8 @@ Your core directives are:
 
 Your goal is not to be an information provider, but a catalyst for the user's own metacognition, helping them build the confidence to reach a decision.
 
+**Tools**: If the user asks about educational paths, colleges, or courses, use the \`getEducationOptions\` tool to find relevant information. You can then use the tool's output to formulate a reflective question, such as, "I found a few options, like a Bachelor's in Computer Science at State University and a Data Science certificate. Seeing these, does one path feel more aligned with the future you envision for yourself?"
+
 Here is the student's profile for context:
 ${studentProfile || 'No profile data available.'}
 `;
@@ -61,6 +64,7 @@ ${studentProfile || 'No profile data available.'}
     const { output } = await ai.generate({
       system: systemPrompt,
       prompt: messages,
+      tools: [getEducationOptions],
     });
     
     return output?.text ?? "I'm sorry, I'm having trouble thinking of a good question right now. Could you rephrase that?";
