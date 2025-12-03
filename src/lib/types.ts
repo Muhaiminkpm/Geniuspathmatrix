@@ -10,10 +10,11 @@ export type ReportInfo = {
     id: string;
     title: string;
     description: string;
+    pages: number;
     requiresAssessment: boolean;
     requiresGoalPlan: boolean;
-    date: Date | null;
-    isAvailable: boolean;
+    date?: Date | null;
+    isAvailable?: boolean;
 };
 
 export type MentorMessage = {

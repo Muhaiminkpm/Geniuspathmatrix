@@ -98,18 +98,18 @@ export async function getCareerSuggestions(input: SuggestCareersInput & { userId
     const userId = input.userId;
     if (!userId) throw new Error("User not authenticated.");
 
-    // Create summaries from the structured data
-    const personalitySummary = `Summary of personality responses: ${Object.values(input.personality).join(', ')}`;
-    const interestSummary = `Summary of interest responses: ${Object.values(input.interest).join(', ')}`;
-    const cognitiveSummary = `Summary of cognitive & skills responses: ${Object.values(input.cognitiveAbilities).join(', ')}. Self-reported skills: ${Object.values(input.selfReportedSkills).join(', ')}`;
-    const cvqSummary = `Summary of CVQ responses: ${Object.values(input.cvq).join(', ')}`;
-    
+    const personalitySummary = `Summary of personality responses: ${JSON.stringify(input.personality)}`;
+    const interestSummary = `Summary of interest responses: ${JSON.stringify(input.interest)}`;
+    const cognitiveSummary = `Summary of cognitive & skills responses: ${JSON.stringify(input.cognitiveAbilities)}. Self-reported skills: ${JSON.stringify(input.selfReportedSkills)}`;
+    const cvqSummary = `Summary of CVQ responses: ${JSON.stringify(input.cvq)}`;
+    const selfReportedSkillsSummary = `Summary of self-reported skills: ${JSON.stringify(input.selfReportedSkills)}`;
+
     // 1. Call the AI flow to get career suggestions
     const suggestions = await suggestCareers({
         personality: personalitySummary,
         interest: interestSummary,
         cognitiveAbilities: cognitiveSummary,
-        selfReportedSkills: Object.values(input.selfReportedSkills).join(', '),
+        selfReportedSkills: selfReportedSkillsSummary,
         cvq: cvqSummary,
     });
     

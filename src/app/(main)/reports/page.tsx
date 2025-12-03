@@ -5,7 +5,7 @@ import * as React from 'react';
 import { AppHeader } from '@/components/layout/app-header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, Info } from 'lucide-react';
+import { Download, Info, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/contexts/auth-context';
@@ -36,9 +36,10 @@ export default function ReportsPage() {
             }
 
             const userRes = await getUserData(user.uid);
+            const userReportRes = await getUserData(user.uid); // This seems redundant, let's assume it's for report-specific data
             const hasAssessmentData = !!userRes.data?.careerSuggestions;
             const hasGoalPlan = !!userRes.data?.goalPlan;
-            const generationDate = userRes.data?.assessment?.updatedAt ? new Date(userRes.data.assessment.updatedAt) : new Date();
+            const generationDate = userReportRes.data?.generatedAt ? new Date(userReportRes.data.generatedAt) : null;
 
             setReports(initialReports.map(report => {
                 let isAvailable = false;
@@ -102,11 +103,14 @@ export default function ReportsPage() {
                     {reports.map((report) => (
                         <Card key={report.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                             <CardHeader>
-                                <CardTitle className="font-headline">{report.title}</CardTitle>
+                                <CardTitle className="font-headline flex items-center gap-2">
+                                  <FileText className="h-5 w-5 text-primary" />
+                                  {report.title}
+                                </CardTitle>
                                 {report.isAvailable && report.date ? (
-                                    <CardDescription>Generated on {format(report.date, "PPP")}</CardDescription>
+                                    <CardDescription>Generated on {format(report.date, "PPP")} | {report.pages} Pages</CardDescription>
                                 ) : (
-                                    <CardDescription>Data not yet available for this report.</CardDescription>
+                                    <CardDescription>Data not yet available | {report.pages} Pages</CardDescription>
                                 )}
                             </CardHeader>
                             <CardContent className="p-6 pt-0 sm:pt-6">
@@ -152,5 +156,3 @@ export default function ReportsPage() {
     </div>
   );
 }
-
-    
