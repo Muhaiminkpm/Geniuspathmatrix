@@ -22,53 +22,28 @@ import { saveParentQuizAnswers } from '@/lib/actions';
 const quizQuestions = [
   {
     id: 'pq1',
-    question: 'How involved are you in your child\'s career planning process?',
-    options: [
-      'Very involved, we discuss it regularly.',
-      'Somewhat involved, I offer advice when asked.',
-      'Slightly involved, I trust them to make their own choices.',
-      'Not involved at all.',
-    ],
+    question: 'We can cover major education expenses (coaching, exams, travel, tuition).',
+    options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'],
   },
   {
     id: 'pq2',
-    question: 'Which of these factors do you consider most important for your child\'s career?',
-    options: [
-      'Job stability and security.',
-      'High salary and financial success.',
-      'Passion and personal fulfillment.',
-      'Work-life balance and well-being.',
-    ],
+    question: 'We are open to our child relocating for study or career opportunities.',
+    options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'],
   },
   {
     id: 'pq3',
-    question: 'How would you react if your child chose a non-traditional career path (e.g., artist, entrepreneur, social worker)?',
-    options: [
-      'Fully supportive, as long as they are happy.',
-      'Cautiously supportive, I\'d have some concerns.',
-      'Slightly unsupportive, I would prefer a more stable career.',
-      'Strongly unsupportive, I would try to persuade them otherwise.',
-    ],
+    question: 'Our child has reliable access to a device and internet for learning.',
+    options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'],
   },
   {
     id: 'pq4',
-    question: 'To what extent are you willing to financially support your child\'s higher education or vocational training?',
-    options: [
-      'I can cover all expenses.',
-      'I can contribute significantly, but they may need loans or scholarships.',
-      'I can provide some support, but they will need to cover most costs.',
-      'I am unable to provide financial support.',
-    ],
+    question: 'We understand and support the career direction our child is exploring.',
+    options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'],
   },
   {
     id: 'pq5',
-    question: 'How important is it for your child to work in a specific geographic location (e.g., close to home)?',
-    options: [
-      'Very important, I want them to stay nearby.',
-      'Somewhat important, but I am open to them moving for the right opportunity.',
-      'Not very important, they should go wherever their career takes them.',
-      'Not important at all, I encourage them to explore the world.',
-    ],
+    question: 'There are viable colleges or career centers within commuting range of our home.',
+    options: ['Strongly Disagree', 'Disagree', 'Neutral', 'Agree', 'Strongly Agree'],
   },
 ];
 
@@ -86,7 +61,7 @@ function ParentQuestionCard({
       <CardContent className="p-6">
         <p className="font-medium mb-4">{question.question}</p>
         <RadioGroup value={selectedValue} onValueChange={onChange}>
-          <div className="space-y-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {question.options.map((opt, index) => (
               <Label
                 key={index}
@@ -234,3 +209,5 @@ export default function ParentQuizPage() {
         </div>
     );
 }
+
+    

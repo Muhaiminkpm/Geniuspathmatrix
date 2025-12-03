@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '@/components/loading-spinner';
 import { getCareerSuggestions, sendParentQuiz } from '@/lib/actions';
 import { useToast } from '@/hooks/use-toast';
-import { AlertCircle, ArrowLeft, ArrowRight, CalendarIcon, Clock, Mail, FileCheck } from 'lucide-react';
+import { AlertCircle, ArrowLeft, ArrowRight, CalendarIcon, Clock, Mail } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -22,64 +22,148 @@ import { format, differenceInYears } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAuth } from '@/contexts/auth-context';
 import { getUserData } from '@/lib/actions';
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+
 
 const assessmentSections = [
-  { id: 'personality', title: 'Personality Test', questions: 10, time: 15, instructions: 'Rate how much you agree or disagree with the following statements about yourself.' },
-  { id: 'interest', title: 'Interest Profiler', questions: 10, time: 15, instructions: 'Rate how much you like or dislike the following activities.' },
-  { id: 'cognitive', title: 'Cognitive & Skill Assessment', questions: 10, time: 20, instructions: 'This section has two parts. Answer the multiple-choice cognitive questions and then rate your confidence in the listed skills.' },
-  { id: 'cvq', title: 'Career Values Quiz', questions: 10, time: 10, instructions: 'Rate how important the following values are to you in a career.' }
+  { id: 'personality', title: 'Personality Assessment', questions: 30, time: 20 * 60, instructions: 'Rate how much each statement describes you on a scale of 1 (Strongly Disagree) to 5 (Strongly Agree).' },
+  { id: 'interest', title: 'Interest Inventory', questions: 20, time: 15 * 60, instructions: 'Indicate how much you would enjoy performing each activity on a scale of 1 (Strongly Dislike) to 5 (Strongly Like).' },
+  { id: 'cognitive', title: 'Cognitive Capability + Skill Mapping', questions: 50, time: 30 * 60, instructions: 'This section has two parts. First, answer 30 cognitive ability questions. Then, self-assess your skills with 20 skill mapping questions.' },
+  { id: 'cvq', title: 'Contextual Viability Quotient (CVQ™)', questions: 20, time: 25 * 60, instructions: 'Rate how much you agree with each statement on a scale of 1 (Strongly Disagree) to 5 (Strongly Agree) for your top career choice.' }
 ];
+
+const totalTime = assessmentSections.reduce((acc, section) => acc + section.time, 0);
 
 const assessmentQuestions = {
   personality: [
-    { id: 'p1', question: 'I am the life of the party.' },
-    { id: 'p2', question: 'I am always prepared.' },
-    { id: 'p3', question: 'I get stressed out easily.' },
-    { id: 'p4', question: 'I have a rich vocabulary.' },
-    { id: 'p5', question: 'I am not interested in other people\'s problems.' },
-    { id: 'p6', question: 'I leave my belongings around.' },
-    { id: 'p7', question: 'I am relaxed most of the time.' },
-    { id: 'p8', question: 'I have difficulty understanding abstract ideas.' },
-    { id: 'p9', question: 'I feel comfortable around people.' },
-    { id: 'p10', question: 'I pay attention to details.' }
+    { id: 'p1', question: 'I enjoy being the center of attention in a group.' },
+    { id: 'p2', question: 'I make sure my school assignments are neat and organized.' },
+    { id: 'p3', question: 'I love learning about new and unusual things.' },
+    { id: 'p4', question: 'I sometimes get anxious or worried about small things.' },
+    { id: 'p5', question: 'I try to be kind and considerate to everyone.' },
+    { id: 'p6', question: 'I always finish what I start, even if it\'s difficult.' },
+    { id: 'p7', question: 'I often come up with creative ideas for school projects or hobbies.' },
+    { id: 'p8', question: 'I am reliable and people can count on me.' },
+    { id: 'p9', question: 'I am good at understanding how others are feeling.' },
+    { id: 'p10', question: 'I tend to overthink things and get stressed.' },
+    { id: 'p11', question: 'I like to explore different cultures and ideas.' },
+    { id: 'p12', question: 'I enjoy taking charge when working on a group project.' },
+    { id: 'p13', question: 'I believe most people are honest and trustworthy.' },
+    { id: 'p14', question: 'I set high standards for myself in schoolwork.' },
+    { id: 'p15', question: 'I feel energized when I\'m around a lot of people.' },
+    { id: 'p16', question: 'I sometimes feel overwhelmed by my emotions.' },
+    { id: 'p17', question: 'I am very imaginative and like to daydream.' },
+    { id: 'p18', question: 'I prefer to stick to a schedule and routine.' },
+    { id: 'p19', question: 'I usually stay calm, even in stressful situations.' },
+    { id: 'p20', question: 'I prefer to spend my free time alone or with a few close friends.' },
+    { id: 'p21', question: 'I enjoy expressing myself through art, music, or writing.' },
+    { id: 'p22', question: 'I can usually handle unexpected problems without getting upset.' },
+    { id: 'p23', question: 'I like to think deeply about complex ideas.' },
+    { id: 'p24', question: 'I enjoy helping my friends or family when they have a problem.' },
+    { id: 'p25', question: 'My room or study space is often a bit messy.' },
+    { id: 'p26', question: 'I am curious about how things work and why people behave the way they do.' },
+    { id: 'p27', question: 'I prefer to work independently on school projects.' },
+    { id: 'p28', question: 'I get annoyed easily by small things.' },
+    { id: 'p29', question: 'I respect traditional ways of doing things.' },
+    { id: 'p30', question: 'I learn new things quickly.' }
   ],
   interest: [
-    { id: 'i1', question: 'Building kitchen cabinets' },
-    { id: 'i2', question: 'Developing a new medicine' },
-    { id: 'i3', question: 'Writing books or plays' },
-    { id: 'i4', question: 'Teaching school' },
-    { id: 'i5', question: 'Buying and selling stocks and bonds' },
-    { id: 'i6', question: 'Operating a copy machine' },
-    { id: 'i7', question: 'Assembling electronic parts' },
-    { id: 'i8', question: 'Doing scientific experiments' },
-    { id: 'i9', question: 'Singing in a band' },
-    { id: 'i10', question: 'Helping people with personal or emotional problems' }
+    { id: 'i1', question: 'Creating a new game or app idea for my phone.' },
+    { id: 'i2', question: 'Mentoring a younger student or helping a classmate with their studies.' },
+    { id: 'i3', question: 'Building or fixing things with my hands (e.g., models, electronics).' },
+    { id: 'i4', question: 'Organizing a school event or a group project.' },
+    { id: 'i5', question: 'Conducting experiments in a science lab.' },
+    { id: 'i6', question: 'Writing stories, poems, or creating digital art.' },
+    { id: 'i7', question: 'Keeping my notes and files perfectly organized.' },
+    { id: 'i8', question: 'Volunteering for a community service project.' },
+    { id: 'i9', question: 'Learning how machines or devices work.' },
+    { id: 'i10', question: 'Leading a club or a school group.' },
+    { id: 'i11', question: 'Researching a topic in depth for a school report.' },
+    { id: 'i12', question: 'Performing in a play, band, or debate.' },
+    { id: 'i13', question: 'Working with numbers and keeping track of finances (e.g., for a school club).' },
+    { id: 'i14', question: 'Helping people who are facing difficulties.' },
+    { id: 'i15', question: 'Designing and building something physical (e.g., a robot, a craft).' },
+    { id: 'i16', question: 'Convincing others to support an idea or project.' },
+    { id: 'i17', question: 'Solving complex math problems or logic puzzles.' },
+    { id: 'i18', question: 'Expressing my thoughts clearly in written essays or presentations.' },
+    { id: 'i19', question: 'Working with plants or animals in a garden or farm.' },
+    { id: 'i20', question: 'Imagining new inventions or solutions to problems.' }
   ],
   cognitive: [
-    { id: 'c1', question: 'Which number logically follows this series? 4, 6, 9, 6, 14, 6, ...', options: ['6', '17', '19', '21'] },
-    { id: 'c2', question: 'A is B\'s sister. C is B\'s mother. D is C\'s father. E is D\'s mother. Then, how is A related to D?', options: ['Grandfather', 'Grandmother', 'Daughter', 'Granddaughter'] },
-    { id: 'c3', question: 'An animal shelter has a 30% discount on all cats, and a 10% discount on all dogs. If a cat costs $100 and a dog costs $150, what is the total cost for one of each?', options: ['$200', '$205', '$210', '$215'] },
-    { id: 'c4', question: 'If you rearrange the letters \'CIFAIPC\' you would have the name of a(n):', options: ['City', 'Animal', 'Ocean', 'River'] },
-    { id: 'c5', question: 'What is the missing number in the series? 2, 5, 10, 17, ?, 37', options: ['24', '26', '28', '30'] }
+    { id: 'c1', question: 'Which word is the odd one out: Apple, Banana, Carrot, Orange, Grape?', options: ['Apple', 'Banana', 'Carrot', 'Orange', 'Grape'] },
+    { id: 'c2', question: 'Complete the series: 2, 4, 8, 16, ?', options: ['20', '24', '32', '36'] },
+    { id: 'c3', question: 'If a bird is to flying as a fish is to ____?', options: ['Swimming', 'Jumping', 'Eating', 'Singing'] },
+    { id: 'c4', question: 'Which shape comes next in the sequence: Triangle, Square, Pentagon, Hexagon, ?', options: ['Heptagon', 'Octagon', 'Circle', 'Star'] },
+    { id: 'c5', question: 'A cyclist travels 10 km in 20 minutes. How far will they travel in 1 hour?', options: ['10 km', '20 km', '30 km', '40 km'] },
+    { id: 'c6', question: 'Find the missing number: 1, 3, 6, 10, ?', options: ['13', '14', '15', '16'] },
+    { id: 'c7', question: 'Which word is the odd one out: Book, Pen, Pencil, Eraser, Desk?', options: ['Book', 'Pen', 'Pencil', 'Eraser', 'Desk'] },
+    { id: 'c8', question: 'If all students are learners, and all learners are curious, then all students are curious. True or False?', options: ['True', 'False'] },
+    { id: 'c9', question: 'Which of the following is the next logical step in the pattern: AB, CD, EF, GH, ?', options: ['IJ', 'KL', 'JK', 'HI'] },
+    { id: 'c10', question: 'If you rearrange the letters \'TINAP\', you would have the name of a(n):', options: ['Animal', 'Fruit', 'Color', 'Country'] },
+    { id: 'c11', question: 'A recipe calls for 2 cups of flour for 8 cookies. How much flour is needed for 16 cookies?', options: ['2 cups', '3 cups', '4 cups', '6 cups'] },
+    { id: 'c12', question: 'Which word is the opposite of \'Brave\': Fearful, Strong, Bold, Heroic?', options: ['Fearful', 'Strong', 'Bold', 'Heroic'] },
+    { id: 'c13', question: 'If a baker can decorate 12 cakes in 3 hours, how many cakes can they decorate in 1 hour?', options: ['3 cakes', '4 cakes', '6 cakes', '12 cakes'] },
+    { id: 'c14', question: 'Complete the sequence: Z, X, V, T, ?', options: ['S', 'U', 'R', 'Q'] },
+    { id: 'c15', question: 'Which of these is an even number: 5, 7, 9, 10?', options: ['5', '7', '9', '10'] },
+    { id: 'c16', question: 'Rahul is taller than Priya. Priya is taller than Sameer. Is Rahul taller than Sameer?', options: ['Yes', 'No', 'Cannot Say'] },
+    { id: 'c17', question: 'Which word is the odd one out: Happy, Sad, Angry, Excited, Sleepy?', options: ['Happy', 'Sad', 'Angry', 'Excited', 'Sleepy'] },
+    { id: 'c18', question: 'If 3 friends share 15 chocolates equally, how many chocolates does each friend get?', options: ['3', '5', '10', '15'] },
+    { id: 'c19', question: 'Which set of letters completes the pattern: AZ, BY, CX, DW, ?', options: ['EV', 'FU', 'GT', 'HS'] },
+    { id: 'c20', question: 'What is 25% of 80?', options: ['10', '20', '25', '40'] },
+    { id: 'c21', question: 'If \'CAT\' is coded as \'3120\', how would \'DOG\' be coded?', options: ['4157', '4158', '4159', '41510'] },
+    { id: 'c22', question: 'Choose the word that is most similar in meaning to \'Ancient\':', options: ['Modern', 'Old', 'New', 'Fast'] },
+    { id: 'c23', question: 'A square has a side length of 5 cm. What is its perimeter?', options: ['10 cm', '15 cm', '20 cm', '25 cm'] },
+    { id: 'c24', question: 'Which number completes the series: 10, 9, 7, 4, ?', options: ['0', '1', '2', '3'] },
+    { id: 'c25', question: 'If \'North\' is \'West\', then \'East\' is \'____\'?', options: ['North', 'South', 'East', 'West'] },
+    { id: 'c26', question: 'Find the odd one out: Lion, Tiger, Elephant, Wolf, Cheetah.', options: ['Lion', 'Tiger', 'Elephant', 'Wolf', 'Cheetah'] },
+    { id: 'c27', question: 'A class has 30 students. 2/3 of them are boys. How many girls are there?', options: ['10', '15', '20', '25'] },
+    { id: 'c28', question: 'Which letter comes next in the sequence: C, F, I, L, ?', options: ['M', 'N', 'O', 'P'] },
+    { id: 'c29', question: 'If yesterday was Monday, what day is tomorrow?', options: ['Tuesday', 'Wednesday', 'Thursday', 'Friday'] },
+    { id: 'c30', question: 'What is the value of 5^2 - 3^2?', options: ['4', '8', '16', '34'] }
   ],
   skillMapping: [
-    { id: 's1', question: 'Analyzing data and drawing conclusions' },
-    { id: 's2', question: 'Leading a team to achieve a goal' },
-    { id: 's3', question: 'Coming up with creative ideas' },
-    { id: 's4', question: 'Organizing your work and managing time effectively' },
-    { id: 's5', question: 'Persuading or influencing others' }
+    { id: 's1', question: 'I am confident sharing my ideas in front of my class.' },
+    { id: 's2', question: 'I can quickly figure out how to use a new app or software.' },
+    { id: 's3', question: 'I am good at explaining difficult topics to my friends.' },
+    { id: 's4', question: 'I often think of unique ways to do school projects.' },
+    { id: 's5', question: 'I keep my school bag and study area organized.' },
+    { id: 's6', question: 'I enjoy working with others on group assignments.' },
+    { id: 's7', question: 'I am good at solving brain teasers or riddles.' },
+    { id: 's8', question: 'I can adjust easily when plans change unexpectedly.' },
+    { id: 's9', question: 'I am good at writing clear and persuasive essays.' },
+    { id: 's10', question: 'I feel comfortable giving presentations or speeches.' },
+    { id: 's11', question: 'I am good at managing my time effectively to meet deadlines.' },
+    { id: 's12', question: 'I can work well under pressure and stay focused.' },
+    { id: 's13', question: 'I am resourceful when faced with limited tools or information.' },
+    { id: 's14', question: 'I am good at finding solutions to problems independently.' },
+    { id: 's15', question: 'I can effectively manage multiple tasks at once.' },
+    { id: 's16', question: 'I am comfortable learning and adapting to new technologies quickly.' },
+    { id: 's17', question: 'I am good at analyzing information to make decisions.' },
+    { id: 's18', question: 'I can clearly express my ideas in writing.' },
+    { id: 's19', question: 'I am skilled at resolving conflicts or disagreements in a group.' },
+    { id: 's20', question: 'I am comfortable taking initiative and leading a task.' }
   ],
   cvq: [
-    { id: 'v1', section: 'Independence', question: 'I want to be able to make my own decisions.' },
-    { id: 'v2', section: 'Independence', question: 'I want to be able to work on my own.' },
-    { id: 'v3', section: 'Support', question: 'I want a supervisor who backs up the workers with management.' },
-    { id: 'v4', section: 'Support', question: 'I want the company to administer its policies fairly.' },
-    { id: 'v5', section: 'Relationships', question: 'I want to have co-workers who are easy to get along with.' },
-    { id: 'v6', section: 'Relationships', question: 'I want to be able to do things for other people.' },
-    { id: 'v7', section: 'Working Conditions', question: 'I want to have a job where I do not have to worry about being laid off.' },
-    { id: 'v8', section: 'Working Conditions', question: 'I want to be busy all the time.' },
-    { id: 'v9', section: 'Achievement', question: 'I want to make use of my abilities and skills.' },
-    { id: 'v10', section: 'Achievement', question: 'I want to have a sense of accomplishment from my job.' }
+    { id: 'v1', section: 'Cultural & Societal Compatibility', question: 'I am free to pursue any career, regardless of family traditions or expectations.' },
+    { id: 'v2', section: 'Cultural & Societal Compatibility', question: 'My family does not interfere in my career decision-making.' },
+    { id: 'v3', section: 'Cultural & Societal Compatibility', question: 'Society in my region encourages diversity in career choices.' },
+    { id: 'v4', section: 'Cultural & Societal Compatibility', question: 'I feel confident resisting social pressure when choosing my career.' },
+    { id: 'v5', section: 'Cultural & Societal Compatibility', question: 'I know people in my community who’ve followed careers different from what was expected of them.' },
+    { id: 'v6', section: 'Language Readiness (Current + Future)', question: 'I can currently read, write, and speak in English or the required career language.' },
+    { id: 'v7', section: 'Language Readiness (Current + Future)', question: 'I understand lectures, videos, or tutorials in English without needing translations.' },
+    { id: 'v8', section: 'Language Readiness (Current + Future)', question: 'I believe I can become fluent in English or another required language within 2 years.' },
+    { id: 'v9', section: 'Language Readiness (Current + Future)', question: 'I would avoid certain careers due to language limitations. (reverse scored)' },
+    { id: 'v10', section: 'Language Readiness (Current + Future)', question: 'I am confident in my ability to clear language-based entrance tests or interviews.' },
+    { id: 'v11', section: 'Digital Access & Tech Confidence', question: 'I have regular access to a smartphone with internet.' },
+    { id: 'v12', section: 'Digital Access & Tech Confidence', question: 'I have access to a laptop or desktop at least 3 days per week.' },
+    { id: 'v13', section: 'Digital Access & Tech Confidence', question: 'I feel confident using online learning platforms and productivity tools.' },
+    { id: 'v14', section: 'Digital Access & Tech Confidence', question: 'My learning or career progress is affected due to poor digital access. (reverse scored)' },
+    { id: 'v15', section: 'Digital Access & Tech Confidence', question: 'I know how to register for online certifications or attend virtual internships.' },
+    { id: 'v16', section: 'Financial & Geographic Readiness', question: 'I can afford entrance or coaching exam fees over the next year.' },
+    { id: 'v17', section: 'Financial & Geographic Readiness', question: 'My financial situation may limit my choice of college or career options. (reverse scored)' },
+    { id: 'v18', section: 'Financial & Geographic Readiness', question: 'I am willing to apply for scholarships or part-time jobs to support my career goals.' },
+    { id: 'v19', section: 'Financial & Geographic Readiness', question: 'I am willing to relocate to another city/state/country for education or work.' },
+    { id: 'v20', 'section': 'Financial & Geographic Readiness', question: 'My family is likely to support me if relocation becomes necessary.' }
   ]
 };
 
@@ -87,41 +171,45 @@ const ratingLabels = {
   personality: [
     { value: '1', label: 'Strongly Disagree' },
     { value: '2', label: 'Disagree' },
-    { value: '3', label: 'Agree' },
-    { value: '4', label: 'Strongly Agree' },
+    { value: '3', label: 'Neutral' },
+    { value: '4', label: 'Agree' },
+    { value: '5', label: 'Strongly Agree' },
   ],
   interest: [
     { value: '1', label: 'Strongly Dislike' },
     { value: '2', label: 'Dislike' },
-    { value: '3', label: 'Like' },
-    { value: '4', label: 'Strongly Like' },
+    { value: '3', label: 'Neutral' },
+    { value: '4', label: 'Like' },
+    { value: '5', label: 'Strongly Like' },
   ],
   skillMapping: [
     { value: '1', label: 'Not at all confident' },
     { value: '2', label: 'Slightly confident' },
-    { value: '3', label: 'Confident' },
-    { value: '4', label: 'Very confident' },
+    { value: '3', label: 'Neutral' },
+    { value: '4', label: 'Confident' },
+    { value: '5', label: 'Very confident' },
   ],
   cvq: [
     { value: '1', label: 'Strongly Disagree' },
     { value: '2', label: 'Disagree' },
-    { value: '3', label: 'Agree' },
-    { value: '4', label: 'Strongly Agree' },
+    { value: '3', label: 'Neutral' },
+    { value: '4', label: 'Agree' },
+    { value: '5', label: 'Strongly Agree' },
   ]
 };
 
-function Timer({ secondsLeft }: { secondsLeft: number; }) {
-  const displayMinutes = Math.floor(secondsLeft / 60);
-  const displaySeconds = secondsLeft % 60;
+function Timer({ secondsLeft, sectionTime }: { secondsLeft: number, sectionTime: number }) {
+  const totalMinutes = Math.floor(totalTime / 60);
+  const displaySectionMinutes = Math.floor(secondsLeft / 60);
+  const displaySectionSeconds = secondsLeft % 60;
   
   return (
     <div className="flex flex-col items-end">
       <div className="flex items-center gap-2 font-mono text-lg font-semibold">
         <Clock className="h-5 w-5" />
-        <span>{String(displayMinutes).padStart(2, '0')}:{String(displaySeconds).padStart(2, '0')
-        }</span>
+        <span>{String(displaySectionMinutes).padStart(2, '0')}:{String(displaySectionSeconds).padStart(2, '0')}</span>
       </div>
-      <p className="text-xs text-muted-foreground">Total Time: 60 minutes</p>
+      <p className="text-xs text-muted-foreground">Section time: {sectionTime / 60} mins | Total: {totalMinutes} mins</p>
     </div>
   );
 }
@@ -186,8 +274,11 @@ export default function AssessmentPage() {
   const [schoolOrCollege, setSchoolOrCollege] = React.useState('');
   const [parentEmail, setParentEmail] = React.useState('');
   const [parentPhone, setParentPhone] = React.useState('');
-  const [timeLeft, setTimeLeft] = React.useState(3600); // 60 minutes in seconds
+
   const [isTestActive, setIsTestActive] = React.useState(false);
+  const [sectionTimeLeft, setSectionTimeLeft] = React.useState(0);
+  const [isTimeUp, setIsTimeUp] = React.useState(false);
+
   const { toast } = useToast();
   
   const submittedRef = React.useRef(false);
@@ -202,6 +293,16 @@ export default function AssessmentPage() {
       });
     }
   }, [user, authLoading, router, toast]);
+
+  React.useEffect(() => {
+    if (isTestActive && currentStep > 1) {
+      const sectionIndex = currentStep - 2;
+      const section = assessmentSections[sectionIndex];
+      if (section) {
+        setSectionTimeLeft(section.time);
+      }
+    }
+  }, [currentStep, isTestActive]);
 
   const waitForReport = React.useCallback(async (userId: string) => {
     let attempts = 0;
@@ -219,10 +320,24 @@ export default function AssessmentPage() {
   }, []);
 
   const handleNext = React.useCallback(() => {
+    const totalSteps = assessmentSections.length + 2; // +1 for info, +1 for start
+    
+    // Check if it's time to show the time's up alert before moving
+    if (sectionTimeLeft <= 0 && isTestActive && currentStep > 1) {
+      setIsTimeUp(true);
+      return;
+    }
+
+    setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [sectionTimeLeft, isTestActive, currentStep]);
+
+  const handleTimeUpAndProceed = () => {
+    setIsTimeUp(false);
     const totalSteps = assessmentSections.length + 2;
     setCurrentStep(prev => Math.min(prev + 1, totalSteps));
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, []);
+  };
   
   const handleSubmit = React.useCallback(async () => {
     if (submittedRef.current) return;
@@ -273,7 +388,7 @@ export default function AssessmentPage() {
             title: 'Report Generation Timed Out',
             description: "Your results are saved, but the report took too long. Please check the PathXplore page in a few minutes.",
         });
-        router.push('/pathxplore'); // Still redirect so user can see results later
+        router.push('/pathxplore');
       }
     } else {
       setSubmissionStatus('failed');
@@ -287,25 +402,18 @@ export default function AssessmentPage() {
   }, [user, answers, router, toast, waitForReport, name, dob, gender, classOfStudy, place, schoolOrCollege]);
   
   React.useEffect(() => {
-    if (!isTestActive) return;
+    if (!isTestActive || currentStep <= 1) return;
     
-    if (timeLeft <= 0) {
-      if(!submittedRef.current) {
-         toast({
-            title: 'Time is up!',
-            description: 'Submitting your assessment automatically.',
-         });
-         handleSubmit();
-      }
+    if (sectionTimeLeft <= 0) {
       return;
     }
     
     const interval = setInterval(() => {
-      setTimeLeft(prev => prev - 1);
+      setSectionTimeLeft(prev => prev - 1);
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [timeLeft, isTestActive, handleSubmit, toast]);
+  }, [sectionTimeLeft, isTestActive, currentStep]);
 
   React.useEffect(() => {
     if (isTestActive) {
@@ -317,11 +425,6 @@ export default function AssessmentPage() {
     setIsTestActive(true);
     setCurrentStep(1);
   };
-
-  const handleBack = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 0));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
 
   const handleAnswerChange = (category: string, questionId: string, value: string) => {
     setAnswers(prev => ({
@@ -342,7 +445,7 @@ export default function AssessmentPage() {
             title: 'Quiz Sent!',
             description: result.message || 'The parent quiz has been sent successfully.',
         });
-        handleNext(); // Proceed to next step after sending
+        handleNext();
     } else {
         toast({
             variant: 'destructive',
@@ -442,7 +545,7 @@ export default function AssessmentPage() {
                          <CardHeader>
                            <CardTitle>Parent Quiz (Optional)</CardTitle>
                            <CardDescription>
-                             For a more complete profile, you can invite a parent or guardian to answer a few questions. This is completely optional and will not affect your primary results.
+                             For a more complete profile, you can invite a parent or guardian to answer a few questions. This is completely optional.
                            </CardDescription>
                          </CardHeader>
                          <CardContent className="grid sm:grid-cols-2 gap-4">
@@ -464,6 +567,11 @@ export default function AssessmentPage() {
                        </Card>
                     )}
                 </CardContent>
+                 <CardFooter>
+                    <Button onClick={handleNext} size="lg" className="w-full" disabled={!dob || !gender || !name}>
+                        Start Assessment <ArrowRight className="ml-2 h-4 w-4" />
+                    </Button>
+                </CardFooter>
             </Card>
         );
     }
@@ -500,7 +608,7 @@ export default function AssessmentPage() {
             />
           ));
           break;
-        case 'cognitive': // This is the combined Cognitive + Skill mapping section
+        case 'cognitive':
           let questionCounter = 0;
           questionsContent = (
             <div className="space-y-8">
@@ -600,10 +708,9 @@ export default function AssessmentPage() {
                         <li>For students of 13-19 age group: Discover Your Unique Potential</li>
                         <li>This assessment is designed to help you understand your unique personality, interests, and cognitive strengths. There are no right or wrong answers. Answer honestly based on how you truly feel or typically behave.</li>
                         <li>The assessment consists of {totalQuestions} questions divided into {assessmentSections.length} sections.</li>
-                        <li>A continuous timer of 60 minutes is set for the entire assessment.</li>
-                        <li>Once you start, the timer will not stop. If you leave the page, the timer will continue. The assessment will auto-submit when the time is up.</li>
-                        <li>Read each question carefully.</li>
-                        <li>Choose the option that best describes you or your answer.</li>
+                        <li>The total time allotted for the assessment is {totalTime / 60} minutes. Each section has a specific time limit.</li>
+                        <li>Once you complete a section and move to the next, you will not be able to go back to previous sections.</li>
+                        <li>Read each question carefully and choose the option that best describes you.</li>
                     </ul>
                 </div>
                 <div>
@@ -614,7 +721,7 @@ export default function AssessmentPage() {
                                 <h4 className="font-semibold">Section {index + 1}: {section.title}</h4>
                                 <ul className="list-disc list-inside text-xs text-muted-foreground">
                                     <li>Number of Questions: {section.questions}</li>
-                                    <li>Approximate Time: {section.time} Minutes</li>
+                                    <li>Time Allotment: {section.time / 60} Minutes</li>
                                 </ul>
                             </div>
                         ))}
@@ -630,19 +737,20 @@ export default function AssessmentPage() {
                 </Alert>
             </CardContent>
              <CardFooter>
-                <Button onClick={handleStartAssessment} className="w-full" size="lg">Start Assessment</Button>
+                <Button onClick={handleStartAssessment} className="w-full" size="lg">Proceed to Information Form</Button>
             </CardFooter>
         </Card>
     );
   };
   
   const isLastAssessmentStep = currentStep === assessmentSections.length + 1;
-  const isGeneralInfoStep = currentStep === 1;
 
   const isLoading = submissionStatus === 'submitting' || submissionStatus === 'polling';
   const loadingText = submissionStatus === 'submitting' 
     ? "Submitting your answers..." 
     : "Analyzing your profile and generating your report...";
+
+  const currentSection = currentStep > 1 ? assessmentSections[currentStep - 2] : null;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -661,33 +769,53 @@ export default function AssessmentPage() {
            </div>
         ) : (
           <div className="max-w-4xl mx-auto space-y-8">
+            <AlertDialog open={isTimeUp} onOpenChange={setIsTimeUp}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Time's Up!</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        The time for this section has expired. Your answers have been saved. Let's move to the next section.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogAction onClick={handleTimeUpAndProceed}>Continue</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+
             {isTestActive && (
               <Card className="sticky top-16 z-20">
                 <CardContent className="p-4 flex justify-between items-center">
                     <div className="flex-1 space-y-2">
-                      <Progress value={((currentStep - 1) / assessmentSections.length) * 100} className="w-full" />
-                      <p className="text-center text-sm text-muted-foreground">Section {currentStep - 1} of {assessmentSections.length}</p>
+                      <Progress value={currentStep > 1 ? ((currentStep - 2) / assessmentSections.length) * 100 : 0} className="w-full" />
+                      <p className="text-center text-sm text-muted-foreground">
+                        {currentStep > 1 ? `Section ${currentStep - 1} of ${assessmentSections.length}` : 'General Information'}
+                      </p>
                     </div>
-                    <div className="w-px bg-border h-10 mx-6"></div>
-                    <Timer secondsLeft={timeLeft} />
+                    {currentSection &&
+                    <>
+                        <div className="w-px bg-border h-10 mx-6"></div>
+                        <Timer secondsLeft={sectionTimeLeft} sectionTime={currentSection.time} />
+                    </>
+                    }
                 </CardContent>
               </Card>
             )}
             
             {renderStep()}
             
-            {isTestActive && (
+            {isTestActive && currentStep > 1 && (
                 <div className="flex justify-between items-center mt-6">
-                    <Button variant="outline" onClick={handleBack} disabled={currentStep <= 1}>
+                    <Button variant="outline" disabled={true}>
                         <ArrowLeft className="mr-2 h-4 w-4" /> Back
                     </Button>
                     {isLastAssessmentStep ? (
                         <Button onClick={handleSubmit} disabled={isLoading}>
-                            {isLoading ? <LoadingSpinner className="mr-2"/> : <FileCheck className="mr-2" />}
+                            {isLoading ? <LoadingSpinner className="mr-2"/> : null}
                             Submit & Get My Results
                         </Button>
                     ) : (
-                        <Button onClick={handleNext} size="lg" disabled={isGeneralInfoStep && (!dob || !gender || !name)}>
+                        <Button onClick={handleNext} size="lg">
                             Next Section <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                     )}
@@ -700,3 +828,5 @@ export default function AssessmentPage() {
     </div>
   );
 }
+
+    
