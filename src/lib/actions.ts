@@ -27,7 +27,7 @@ type SuggestCareersInput = {
 }
 
 type GenerateGoalsInput = {
-    careerName: string;
+    careerSelections: string[];
     studentProfile: string;
     timeframes: string[];
 }
@@ -152,7 +152,7 @@ export async function getGeneratedGoals(input: GenerateGoalsInput & { userId: st
         if (!userId) throw new Error("User not authenticated.");
 
         const goals = await generateGoals({
-            careerName: input.careerName,
+            careerSelections: input.careerSelections,
             studentProfile: input.studentProfile,
             timeframes: input.timeframes,
         });
@@ -160,7 +160,6 @@ export async function getGeneratedGoals(input: GenerateGoalsInput & { userId: st
         const userDocRef = adminDb.collection("users").doc(userId);
         await userDocRef.update({
             goalPlan: goals,
-            'careerSuggestions.0.selected': true, // Mark the first career as selected for goal planning
         });
 
         return { success: true, data: goals };

@@ -19,9 +19,9 @@ const GoalSchema = z.object({
 });
 
 const GenerateGoalsInputSchema = z.object({
-  careerName: z.string().describe("The student's chosen career path."),
+  careerSelections: z.array(z.string()).describe("An array of the student's chosen career paths (up to 3)."),
   studentProfile: z.string().describe("A JSON string containing the student's assessment results and career suggestions."),
-  timeframes: z.array(z.string()).describe("An array of timeframes for which to generate goals (e.g., ['1-year', '3-year', '5-year'])."),
+  timeframes: z.array(z.string()).describe("An array of timeframes for which to generate goals (e.g., ['1-year', '3-year', '5-year', '10-year'])."),
 });
 export type GenerateGoalsInput = z.infer<typeof GenerateGoalsInputSchema>;
 
@@ -40,10 +40,10 @@ const generateGoalsFlow = ai.defineFlow(
     inputSchema: GenerateGoalsInputSchema,
     outputSchema: GenerateGoalsOutputSchema,
   },
-  async ({ careerName, studentProfile, timeframes }) => {
-    const systemPrompt = `You are an expert career and academic advisor AI named "GoalMint". Your task is to create a comprehensive and personalized SMART goal plan for a student based on their chosen career path and their detailed assessment profile.
+  async ({ careerSelections, studentProfile, timeframes }) => {
+    const systemPrompt = `You are an expert career and academic advisor AI named "GoalMint". Your task is to create a comprehensive and personalized SMART goal plan for a student based on their chosen career path(s) and their detailed assessment profile. The student has selected the following careers to plan for: ${careerSelections.join(', ')}.
 
-The plan should be broken down into specific timeframes provided by the user (e.g., 1-year, 3-year, 5-year).
+The plan should be broken down into specific timeframes provided by the user: ${timeframes.join(', ')}.
 
 For each timeframe, you must generate a set of goals across three categories:
 1.  **Academic**: Concrete educational milestones (e.g., courses to take, degrees to pursue, certifications to earn).
@@ -52,9 +52,10 @@ For each timeframe, you must generate a set of goals across three categories:
 
 **CRITICAL INSTRUCTIONS**:
 *   **SMART Goals**: Every goal must be Specific, Measurable, Achievable, Relevant, and Time-bound. The description for each goal must reflect this.
-*   **Personalization**: The goals must be highly relevant to the student's chosen career (${careerName}) and their unique profile (interests, skills, personality). Refer to the provided student profile to tailor your suggestions. For example, if the student has a weakness in a certain skill, a goal should be created to address it.
+*   **10-Year Vision**: For the '10-year' plan, the goals should be more aspirational and visionary, focusing on long-term achievement, leadership, or expert-level status (e.g., "Achieve a leadership role like 'Senior Project Manager' or 'Lead Architect'").
+*   **Personalization**: The goals must be highly relevant to the student's chosen careers and their unique profile (interests, skills, personality). Refer to the provided student profile to tailor your suggestions. For example, if a student has a weakness in a certain skill relevant to their chosen careers, a goal should be created to address it.
 *   **Action-Oriented**: Phrase goals in a way that encourages action.
-*   **Structured Output**: Your output must be a JSON object where the keys are the requested timeframes (e.g., "1-year", "3-year") and the value for each key is an array of goal objects. Each goal object must have an id, title, category, and a detailed SMART description.
+*   **Structured Output**: Your output must be a JSON object where the keys are the requested timeframes (e.g., "1-year", "10-year") and the value for each key is an array of goal objects. Each goal object must have an id, title, category, and a detailed SMART description.
 
 **Example Goal for a future Software Engineer:**
 {
@@ -64,12 +65,12 @@ For each timeframe, you must generate a set of goals across three categories:
   "description": "Dedicate 5-7 hours per week over the next 6 months to complete a comprehensive online course on React.js. Build and deploy at least three small projects to a personal portfolio to demonstrate measurable proficiency."
 }
 
-Analyze the student's profile and chosen career, then generate a detailed and actionable plan for the following timeframes: ${timeframes.join(', ')}.`;
+Analyze the student's profile and chosen careers, then generate a detailed and actionable plan for all requested timeframes.`;
 
     const { output } = await ai.generate({
       model: 'googleai/gemini-1.5-flash-latest',
       system: systemPrompt,
-      prompt: `Student Profile for ${careerName}: ${studentProfile}`,
+      prompt: `Student Profile for ${careerSelections.join(', ')}: ${studentProfile}`,
       output: { schema: GenerateGoalsOutputSchema },
     });
     

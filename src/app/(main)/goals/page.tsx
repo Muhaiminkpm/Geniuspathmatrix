@@ -23,6 +23,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -80,56 +81,70 @@ function GoalCategory({ title, goals, icon }: { title: "Academic" | "Skill" | "N
 function GeneratePlanDialog({ onPlanGenerated, careerSuggestions, userId }: { onPlanGenerated: (plan: GoalPlan) => void, careerSuggestions: CareerSuggestion[] | null, userId: string | null }) {
   const [open, setOpen] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [selectedCareers, setSelectedCareers] = React.useState<string[]>([]);
   const { toast } = useToast();
+
+  React.useEffect(() => {
+    if (careerSuggestions && careerSuggestions.length > 0) {
+        setSelectedCareers([careerSuggestions[0].careerName]);
+    }
+  }, [careerSuggestions]);
+
+  const handleCheckboxChange = (careerName: string, checked: boolean | 'indeterminate') => {
+    setSelectedCareers(prev => {
+        const newSelection = checked ? [...prev, careerName] : prev.filter(c => c !== careerName);
+        if (newSelection.length > 3) {
+            toast({
+                variant: 'destructive',
+                title: 'Maximum 3 Careers',
+                description: 'Please select up to 3 careers to generate a combined plan.',
+            });
+            return prev;
+        }
+        return newSelection;
+    });
+  }
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
 
-    if (!userId) {
-        toast({ variant: 'destructive', title: 'Not Authenticated' });
-        setIsLoading(false);
-        return;
-    }
-
-    if (!careerSuggestions || careerSuggestions.length === 0) {
+    if (!userId || !careerSuggestions || careerSuggestions.length === 0) {
       toast({
         variant: 'destructive',
-        title: 'Assessment Required',
-        description: 'Please complete the assessment before generating a goal plan.',
+        title: 'Error',
+        description: 'User or assessment data is missing.',
       });
       setIsLoading(false);
       return;
     }
 
     const formData = new FormData(event.currentTarget);
-    const careerName = formData.get('careerName') as string;
-    const timeframes = (formData.get('timeframes') as string)
-      .split(',')
-      .map(t => t.trim().toLowerCase().replace(' ', '-'))
-      .filter(t => t);
-
+    const tenYearVision = formData.get('10-year-vision') as string;
+    
+    let timeframes = ['1-year', '3-year', '5-year'];
+    if (tenYearVision) timeframes.push('10-year');
+    
     const topCareer = careerSuggestions[0];
-    const studentProfile = `Top career match: ${topCareer.careerName}. Match explanation: ${topCareer.matchExplanation}. SWOT Analysis: ${topCareer.swotAnalysis}`;
+    const studentProfile = `Top career match: ${topCareer.careerName}. Match explanation: ${topCareer.matchExplanation}. SWOT Analysis: ${topCareer.swotAnalysis || 'Not available.'}`;
 
-
-    if (!careerName || timeframes.length === 0) {
+    if (selectedCareers.length === 0) {
       toast({
         variant: 'destructive',
-        title: 'Missing Information',
-        description: 'Please fill out all fields to generate your plan.',
+        title: 'No Career Selected',
+        description: 'Please select at least one career to generate a plan.',
       });
       setIsLoading(false);
       return;
     }
-
-    const result = await getGeneratedGoals({ careerName, studentProfile, timeframes, userId });
+    
+    const result = await getGeneratedGoals({ careerSelections: selectedCareers, studentProfile, timeframes, userId });
 
     if (result.success && result.data) {
       onPlanGenerated(result.data);
       toast({
         title: 'Plan Generated!',
-        description: `Your new GoalMint™ plan for ${careerName} is ready.`,
+        description: `Your new GoalMint™ plan is ready.`,
       });
       setOpen(false);
     } else {
@@ -150,15 +165,14 @@ function GeneratePlanDialog({ onPlanGenerated, careerSuggestions, userId }: { on
           Generate Your Goal Plan
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Generate Your GoalMint™ Plan</DialogTitle>
           <DialogDescription>
-            Confirm your career choice to build a personalized roadmap. Your plan will be based on your assessment results.
+            Select up to 3 careers from your top matches to build a personalized roadmap.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-          {!careerSuggestions && (
+        {!careerSuggestions || careerSuggestions.length === 0 ? (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>No Assessment Data Found</AlertTitle>
@@ -166,26 +180,39 @@ function GeneratePlanDialog({ onPlanGenerated, careerSuggestions, userId }: { on
                 You must complete the InsightX assessment before a plan can be generated.
               </AlertDescription>
             </Alert>
+          ) : (
+            <form onSubmit={handleSubmit} className="grid gap-6 py-4">
+                <div className="space-y-3">
+                    <Label className="font-semibold">Select Careers (up to 3)</Label>
+                    <div className="space-y-2 rounded-md border p-4">
+                        {careerSuggestions.slice(0, 5).map((career) => (
+                            <div key={career.careerName} className="flex items-center space-x-2">
+                                <Checkbox 
+                                    id={career.careerName} 
+                                    checked={selectedCareers.includes(career.careerName)}
+                                    onCheckedChange={(checked) => handleCheckboxChange(career.careerName, checked)}
+                                />
+                                <Label htmlFor={career.careerName} className="font-normal cursor-pointer">
+                                    {career.careerName}
+                                </Label>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="space-y-3">
+                    <Label htmlFor="10-year-vision" className="font-semibold">10-Year Vision & Achievement Plan (Optional)</Label>
+                    <Input id="10-year-vision" name="10-year-vision" placeholder="e.g., Become a leader in my field..." />
+                </div>
+
+                <DialogFooter>
+                    <Button type="submit" disabled={isLoading || selectedCareers.length === 0}>
+                    {isLoading && <LoadingSpinner className="mr-2" />}
+                    Generate Plan
+                    </Button>
+                </DialogFooter>
+            </form>
           )}
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="careerName" className="text-right">
-              Career
-            </Label>
-            <Input id="careerName" name="careerName" placeholder="e.g., Software Engineer" defaultValue={careerSuggestions?.[0]?.careerName || ''} className="col-span-3" />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="timeframes" className="text-right">
-              Timeframes
-            </Label>
-            <Input id="timeframes" name="timeframes" placeholder="e.g., 1 year, 3 years" className="col-span-3" defaultValue="1-year, 3-year, 5-year" />
-          </div>
-          <DialogFooter>
-            <Button type="submit" disabled={isLoading || !careerSuggestions || !userId}>
-              {isLoading && <LoadingSpinner className="mr-2" />}
-              Generate Plan
-            </Button>
-          </DialogFooter>
-        </form>
       </DialogContent>
     </Dialog>
   );
@@ -236,12 +263,16 @@ export default function GoalsPage() {
         </div>
     )
   }
-
-  const goalPlans = goals ? Object.entries(goals).sort((a, b) => parseInt(a[0]) - parseInt(b[0])).map(([period, goals]) => ({
-    period: period,
-    title: period.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
-    goals: goals,
-  })) : [];
+  
+  const sortOrder = ['1-year', '3-year', '5-year', '10-year'];
+  const goalPlans = goals ? Object.entries(goals)
+    .map(([period, goals]) => ({
+        period: period,
+        title: period.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        goals: goals,
+    }))
+    .sort((a, b) => sortOrder.indexOf(a.period) - sortOrder.indexOf(b.period))
+    : [];
   
   const hasGoals = goals && Object.keys(goals).length > 0;
 
@@ -261,7 +292,7 @@ export default function GoalsPage() {
             </div>
           
           {hasGoals ? (
-            <Tabs defaultValue={goalPlans[0].period} className="w-full">
+            <Tabs defaultValue={goalPlans[0]?.period} className="w-full">
               <TabsList className={`grid w-full grid-cols-${goalPlans.length > 1 ? goalPlans.length : 2}`}>
                 {goalPlans.map((plan) => (
                   <TabsTrigger key={plan.period} value={plan.period}>
