@@ -8,8 +8,8 @@
  * - SWOTAnalysisOutput - The return type for the function.
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { generateText } from '@/ai/groq';
+import { z } from 'zod';
 
 const SWOTAnalysisInputSchema = z.object({
   careerName: z.string().describe('The career for which to generate the analysis.'),
@@ -19,20 +19,10 @@ export type SWOTAnalysisInput = z.infer<typeof SWOTAnalysisInputSchema>;
 
 export type SWOTAnalysisOutput = string;
 
-
 export async function getSWOTAnalysisForCareer(input: SWOTAnalysisInput): Promise<SWOTAnalysisOutput> {
-    return swotAnalysisFlow(input);
-}
+  const { careerName, studentProfile } = input;
 
-
-const swotAnalysisFlow = ai.defineFlow(
-  {
-    name: 'swotAnalysisFlow',
-    inputSchema: SWOTAnalysisInputSchema,
-    outputSchema: z.string(),
-  },
-  async ({ careerName, studentProfile }) => {
-    const systemPrompt = `You are a career strategy expert. Your task is to generate a concise, personalized SWOT analysis (Strengths, Weaknesses, Opportunities, Threats) for a student considering a specific career path.
+  const systemPrompt = `You are a career strategy expert. Your task is to generate a concise, personalized SWOT analysis (Strengths, Weaknesses, Opportunities, Threats) for a student considering a specific career path.
 
 You will be given the student's profile and their chosen career.
 
@@ -62,12 +52,13 @@ Provide the output as a single, formatted string. Use markdown-style headings fo
 - [Threat 2 based on market trends]
 `;
 
-    const { output } = await ai.generate({
-        model: 'googleai/gemini-1.5-flash-latest',
-        system: systemPrompt,
-        prompt: `Generate a SWOT analysis for the career of "${careerName}" based on this student profile: ${studentProfile}`,
-    });
+  const prompt = `${systemPrompt}\n\nGenerate a SWOT analysis for the career of "${careerName}" based on this student profile: ${studentProfile}`;
 
-    return output?.text ?? "Could not generate SWOT analysis at this time.";
+  try {
+    const output = await generateText(prompt);
+    return output ?? "Could not generate SWOT analysis at this time.";
+  } catch (error) {
+    console.error("AI failed to return SWOT analysis:", error);
+    return "Could not generate SWOT analysis at this time.";
   }
-);
+}

@@ -55,27 +55,32 @@ function GoalItem({ goal }: { goal: GoalItemType }) {
 }
 
 function GoalCategory({ title, goals, icon }: { title: "Academic" | "Skill" | "Networking", goals: GoalItemType[], icon: React.ReactNode }) {
-    const filteredGoals = goals.filter(g => g.category === title);
-    if (filteredGoals.length === 0) return null;
+  if (!Array.isArray(goals)) {
+    console.error('GoalCategory received non-array goals:', goals);
+    return null;
+  }
 
-    return (
-        <AccordionItem value={title.toLowerCase()}>
-            <AccordionTrigger className="text-lg font-semibold hover:no-underline">
-                <div className="flex items-center gap-3">
-                    {icon}
-                    <span>{title} Goals</span>
-                    <Badge variant="secondary">{filteredGoals.length}</Badge>
-                </div>
-            </AccordionTrigger>
-            <AccordionContent>
-                <div className="space-y-2 pl-4 border-l-2 ml-2">
-                  {filteredGoals.map((goal, index) => (
-                      <GoalItem key={index} goal={goal} />
-                  ))}
-                </div>
-            </AccordionContent>
-        </AccordionItem>
-    );
+  const filteredGoals = goals.filter(g => g.category === title);
+  if (filteredGoals.length === 0) return null;
+
+  return (
+    <AccordionItem value={title.toLowerCase()}>
+      <AccordionTrigger className="text-lg font-semibold hover:no-underline">
+        <div className="flex items-center gap-3">
+          {icon}
+          <span>{title} Goals</span>
+          <Badge variant="secondary">{filteredGoals.length}</Badge>
+        </div>
+      </AccordionTrigger>
+      <AccordionContent>
+        <div className="space-y-2 pl-4 border-l-2 ml-2">
+          {filteredGoals.map((goal, index) => (
+            <GoalItem key={index} goal={goal} />
+          ))}
+        </div>
+      </AccordionContent>
+    </AccordionItem>
+  );
 }
 
 function GeneratePlanDialog({ onPlanGenerated, careerSuggestions, userId }: { onPlanGenerated: (plan: GoalPlan) => void, careerSuggestions: CareerSuggestion[] | null, userId: string | null }) {
@@ -86,22 +91,26 @@ function GeneratePlanDialog({ onPlanGenerated, careerSuggestions, userId }: { on
 
   React.useEffect(() => {
     if (careerSuggestions && careerSuggestions.length > 0) {
-        setSelectedCareers([careerSuggestions[0].careerName]);
+      setSelectedCareers([careerSuggestions[0].careerName]);
     }
   }, [careerSuggestions]);
 
   const handleCheckboxChange = (careerName: string, checked: boolean | 'indeterminate') => {
+    if (checked && selectedCareers.length >= 3 && !selectedCareers.includes(careerName)) {
+      toast({
+        variant: 'destructive',
+        title: 'Maximum 3 Careers',
+        description: 'Please select up to 3 careers to generate a combined plan.',
+      });
+      return;
+    }
+
     setSelectedCareers(prev => {
-        const newSelection = checked ? [...prev, careerName] : prev.filter(c => c !== careerName);
-        if (newSelection.length > 3) {
-            toast({
-                variant: 'destructive',
-                title: 'Maximum 3 Careers',
-                description: 'Please select up to 3 careers to generate a combined plan.',
-            });
-            return prev;
-        }
-        return newSelection;
+      if (checked) {
+        return [...prev, careerName];
+      } else {
+        return prev.filter(c => c !== careerName);
+      }
     });
   }
 
@@ -121,10 +130,10 @@ function GeneratePlanDialog({ onPlanGenerated, careerSuggestions, userId }: { on
 
     const formData = new FormData(event.currentTarget);
     const tenYearVision = formData.get('10-year-vision') as string;
-    
+
     let timeframes = ['1-year', '3-year', '5-year'];
     if (tenYearVision) timeframes.push('10-year');
-    
+
     const topCareer = careerSuggestions[0];
     const studentProfile = `Top career match: ${topCareer.careerName}. Match explanation: ${topCareer.matchExplanation}. SWOT Analysis: ${topCareer.swotAnalysis || 'Not available.'}`;
 
@@ -137,7 +146,7 @@ function GeneratePlanDialog({ onPlanGenerated, careerSuggestions, userId }: { on
       setIsLoading(false);
       return;
     }
-    
+
     const result = await getGeneratedGoals({ careerSelections: selectedCareers, studentProfile, timeframes, userId });
 
     if (result.success && result.data) {
@@ -173,46 +182,46 @@ function GeneratePlanDialog({ onPlanGenerated, careerSuggestions, userId }: { on
           </DialogDescription>
         </DialogHeader>
         {!careerSuggestions || careerSuggestions.length === 0 ? (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>No Assessment Data Found</AlertTitle>
-              <AlertDescription>
-                You must complete the InsightX assessment before a plan can be generated.
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <form onSubmit={handleSubmit} className="grid gap-6 py-4">
-                <div className="space-y-3">
-                    <Label className="font-semibold">Select Careers (up to 3)</Label>
-                    <div className="space-y-2 rounded-md border p-4">
-                        {careerSuggestions.slice(0, 5).map((career) => (
-                            <div key={career.careerName} className="flex items-center space-x-2">
-                                <Checkbox 
-                                    id={career.careerName} 
-                                    checked={selectedCareers.includes(career.careerName)}
-                                    onCheckedChange={(checked) => handleCheckboxChange(career.careerName, checked)}
-                                />
-                                <Label htmlFor={career.careerName} className="font-normal cursor-pointer">
-                                    {career.careerName}
-                                </Label>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>No Assessment Data Found</AlertTitle>
+            <AlertDescription>
+              You must complete the InsightX assessment before a plan can be generated.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <form onSubmit={handleSubmit} className="grid gap-6 py-4">
+            <div className="space-y-3">
+              <Label className="font-semibold">Select Careers (up to 3)</Label>
+              <div className="space-y-2 rounded-md border p-4">
+                {careerSuggestions.slice(0, 5).map((career) => (
+                  <div key={career.careerName} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={career.careerName}
+                      checked={selectedCareers.includes(career.careerName)}
+                      onCheckedChange={(checked) => handleCheckboxChange(career.careerName, checked)}
+                    />
+                    <Label htmlFor={career.careerName} className="font-normal cursor-pointer">
+                      {career.careerName}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-                <div className="space-y-3">
-                    <Label htmlFor="10-year-vision" className="font-semibold">10-Year Vision & Achievement Plan (Optional)</Label>
-                    <Input id="10-year-vision" name="10-year-vision" placeholder="e.g., Become a leader in my field..." />
-                </div>
+            <div className="space-y-3">
+              <Label htmlFor="10-year-vision" className="font-semibold">10-Year Vision & Achievement Plan (Optional)</Label>
+              <Input id="10-year-vision" name="10-year-vision" placeholder="e.g., Become a leader in my field..." />
+            </div>
 
-                <DialogFooter>
-                    <Button type="submit" disabled={isLoading || selectedCareers.length === 0}>
-                    {isLoading && <LoadingSpinner className="mr-2" />}
-                    Generate Plan
-                    </Button>
-                </DialogFooter>
-            </form>
-          )}
+            <DialogFooter>
+              <Button type="submit" disabled={isLoading || selectedCareers.length === 0}>
+                {isLoading && <LoadingSpinner className="mr-2" />}
+                Generate Plan
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
@@ -227,7 +236,7 @@ export default function GoalsPage() {
 
   React.useEffect(() => {
     async function loadData() {
-      if(authLoading) return;
+      if (authLoading) return;
       if (!user) {
         setIsLoading(false);
         return;
@@ -236,8 +245,8 @@ export default function GoalsPage() {
       try {
         const res = await getUserData(user.uid);
         if (res.success && res.data) {
-            if (res.data.careerSuggestions) setCareerSuggestions(res.data.careerSuggestions);
-            if (res.data.goalPlan) setGoals(res.data.goalPlan);
+          if (res.data.careerSuggestions) setCareerSuggestions(res.data.careerSuggestions);
+          if (res.data.goalPlan) setGoals(res.data.goalPlan);
         }
       } catch (e) {
         toast({
@@ -255,25 +264,34 @@ export default function GoalsPage() {
 
   if (isLoading || authLoading) {
     return (
-        <div className="flex min-h-0 flex-1 flex-col">
-            <AppHeader title="GoalMint Planner" />
-            <main className="flex-1 flex items-center justify-center">
-                <LoadingSpinner className="h-10 w-10" />
-            </main>
-        </div>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <AppHeader title="GoalMint Planner" />
+        <main className="flex-1 flex items-center justify-center">
+          <LoadingSpinner className="h-10 w-10" />
+        </main>
+      </div>
     )
   }
-  
+
+
   const sortOrder = ['1-year', '3-year', '5-year', '10-year'];
+
+  console.log('Raw goals data:', goals);
+  console.log('Goals type:', typeof goals);
+  console.log('Goals keys:', goals ? Object.keys(goals) : 'null');
+
   const goalPlans = goals ? Object.entries(goals)
-    .map(([period, goals]) => ({
+    .map(([period, goalsData]) => {
+      console.log(`Period: ${period}, Goals data:`, goalsData, 'Is array?', Array.isArray(goalsData));
+      return {
         period: period,
         title: period.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()),
-        goals: goals,
-    }))
+        goals: Array.isArray(goalsData) ? goalsData : [],
+      };
+    })
     .sort((a, b) => sortOrder.indexOf(a.period) - sortOrder.indexOf(b.period))
     : [];
-  
+
   const hasGoals = goals && Object.keys(goals).length > 0;
 
   return (
@@ -281,16 +299,16 @@ export default function GoalsPage() {
       <AppHeader title="GoalMint Planner" />
       <main className="flex-1 p-4 md:p-6 lg:p-8">
         <div className="max-w-6xl mx-auto">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
-                <div className="space-y-1">
-                    <h2 className="text-3xl font-bold font-headline tracking-tight">Your SMART GoalMint™ Plan</h2>
-                    <p className="text-muted-foreground">Translate your chosen career path into an executable roadmap.</p>
-                </div>
-                { hasGoals &&
-                    <GeneratePlanDialog onPlanGenerated={setGoals} careerSuggestions={careerSuggestions} userId={user?.uid || null} />
-                }
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 gap-4">
+            <div className="space-y-1">
+              <h2 className="text-3xl font-bold font-headline tracking-tight">Your SMART GoalMint™ Plan</h2>
+              <p className="text-muted-foreground">Translate your chosen career path into an executable roadmap.</p>
             </div>
-          
+            {hasGoals &&
+              <GeneratePlanDialog onPlanGenerated={setGoals} careerSuggestions={careerSuggestions} userId={user?.uid || null} />
+            }
+          </div>
+
           {hasGoals ? (
             <Tabs defaultValue={goalPlans[0]?.period} className="w-full">
               <TabsList className={`grid w-full grid-cols-${goalPlans.length > 1 ? goalPlans.length : 2}`}>
@@ -306,7 +324,7 @@ export default function GoalsPage() {
                     <CardHeader>
                       <CardTitle className="font-headline">{plan.title}</CardTitle>
                       <CardDescription>
-                        Your SMART goals and execution timeline for the next {plan.period.replace('-',' ')}.
+                        Your SMART goals and execution timeline for the next {plan.period.replace('-', ' ')}.
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -321,14 +339,14 @@ export default function GoalsPage() {
               ))}
             </Tabs>
           ) : (
-             <Card className="text-center p-12 border-dashed">
-                <Goal className="h-12 w-12 mx-auto text-muted-foreground" />
-                <CardTitle className="font-headline mt-4">Create Your Career Roadmap</CardTitle>
-                <CardDescription className="mt-2 mb-6 max-w-sm mx-auto">
-                    Your GoalMint™ Plan is currently empty. Use the AI Goal Builder to generate a personalized action plan based on your career choice.
-                </CardDescription>
-                <GeneratePlanDialog onPlanGenerated={setGoals} careerSuggestions={careerSuggestions} userId={user?.uid || null} />
-             </Card>
+            <Card className="text-center p-12 border-dashed">
+              <Goal className="h-12 w-12 mx-auto text-muted-foreground" />
+              <CardTitle className="font-headline mt-4">Create Your Career Roadmap</CardTitle>
+              <CardDescription className="mt-2 mb-6 max-w-sm mx-auto">
+                Your GoalMint™ Plan is currently empty. Use the AI Goal Builder to generate a personalized action plan based on your career choice.
+              </CardDescription>
+              <GeneratePlanDialog onPlanGenerated={setGoals} careerSuggestions={careerSuggestions} userId={user?.uid || null} />
+            </Card>
           )}
         </div>
       </main>

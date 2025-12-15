@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "796249424112",
+    "project_id": "geniuspathmatrix",
+    "storage_bucket": "geniuspathmatrix.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:796249424112:android:94c4e923b69815d2ee0235",
+        "android_client_info": {
+          "package_name": "com.scanteck.Geniuspathmatrix"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMLeZOdYOxKzw0l_RcBUYxzyKL8V6Ftlg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

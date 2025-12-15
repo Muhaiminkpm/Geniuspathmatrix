@@ -8,14 +8,14 @@
  * - GenerateGoalsOutput - The return type for the generateGoals function.
  */
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { generateJSON } from '@/ai/groq';
+import { z } from 'zod';
 
 const GoalSchema = z.object({
-    id: z.string().describe("A unique identifier for the goal (e.g., 'academic-1')."),
-    title: z.string().describe('A concise, one-sentence title for the goal.'),
-    category: z.enum(['Academic', 'Skill', 'Networking']).describe('The category of the goal.'),
-    description: z.string().describe('A detailed, 2-3 sentence SMART description of the goal (Specific, Measurable, Achievable, Relevant, Time-bound).'),
+  id: z.string().describe("A unique identifier for the goal (e.g., 'academic-1')."),
+  title: z.string().describe('A concise, one-sentence title for the goal.'),
+  category: z.enum(['Academic', 'Skill', 'Networking']).describe('The category of the goal.'),
+  description: z.string().describe('A detailed, 2-3 sentence SMART description of the goal (Specific, Measurable, Achievable, Relevant, Time-bound).'),
 });
 
 const GenerateGoalsInputSchema = z.object({
@@ -28,20 +28,10 @@ export type GenerateGoalsInput = z.infer<typeof GenerateGoalsInputSchema>;
 const GenerateGoalsOutputSchema = z.record(z.array(GoalSchema)).describe("An object where keys are the timeframes (e.g., '1-year') and values are arrays of goals for that timeframe.");
 export type GenerateGoalsOutput = z.infer<typeof GenerateGoalsOutputSchema>;
 
-
 export async function generateGoals(input: GenerateGoalsInput): Promise<GenerateGoalsOutput> {
-  return generateGoalsFlow(input);
-}
+  const { careerSelections, studentProfile, timeframes } = input;
 
-
-const generateGoalsFlow = ai.defineFlow(
-  {
-    name: 'generateGoalsFlow',
-    inputSchema: GenerateGoalsInputSchema,
-    outputSchema: GenerateGoalsOutputSchema,
-  },
-  async ({ careerSelections, studentProfile, timeframes }) => {
-    const systemPrompt = `You are an expert career and academic advisor AI named "GoalMint". Your task is to create a comprehensive and personalized SMART goal plan for a student based on their chosen career path(s) and their detailed assessment profile. The student has selected the following careers to plan for: ${careerSelections.join(', ')}.
+  const systemPrompt = `You are an expert career and academic advisor AI named "GoalMint". Your task is to create a comprehensive and personalized SMART goal plan for a student based on their chosen career path(s) and their detailed assessment profile. The student has selected the following careers to plan for: ${careerSelections.join(', ')}.
 
 The plan should be broken down into specific timeframes provided by the user: ${timeframes.join(', ')}.
 
@@ -67,18 +57,19 @@ For each timeframe, you must generate a set of goals across three categories:
 
 Analyze the student's profile and chosen careers, then generate a detailed and actionable plan for all requested timeframes.`;
 
-    const { output } = await ai.generate({
-      model: 'googleai/gemini-1.5-flash-latest',
-      system: systemPrompt,
-      prompt: `Student Profile for ${careerSelections.join(', ')}: ${studentProfile}`,
-      output: { schema: GenerateGoalsOutputSchema },
-    });
-    
-    if (!output) {
+  const prompt = `${systemPrompt}\n\nStudent Profile for ${careerSelections.join(', ')}: ${studentProfile}`;
+
+  try {
+    const outputData = await generateJSON<GenerateGoalsOutput>(prompt, GenerateGoalsOutputSchema);
+
+    if (!outputData) {
       console.error("AI failed to return valid goals. Returning empty object.");
       return {};
     }
 
-    return output;
+    return outputData;
+  } catch (error) {
+    console.error("AI failed to return valid goals:", error);
+    return {};
   }
-);
+}

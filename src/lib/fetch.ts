@@ -31,7 +31,7 @@ export async function fetchJson(
 
   // Prepare a helpful debug object for error reporting
   const debug = {
-    url: typeof input === 'string' ? input : input?.url || 'unknown',
+    url: typeof input === 'string' ? input : (input instanceof Request ? input.url : input.toString()),
     status: res.status,
     statusText: res.statusText,
     contentType: res.headers.get('content-type') || '',
@@ -43,13 +43,13 @@ export async function fetchJson(
     console.error('fetchJson - Non-OK response. Debug:', debug);
     let message = `Request failed with status ${res.status}`;
     try {
-        const errorJson = JSON.parse(text || '{}');
-        message = errorJson.message || errorJson.error || message;
+      const errorJson = JSON.parse(text || '{}');
+      message = errorJson.message || errorJson.error || message;
     } catch (e) {
-        // Not a JSON error response, use the body snippet if available
-        if (debug.bodySnippet) {
-            message = `Request failed with status ${res.status}. Response: ${debug.bodySnippet}`;
-        }
+      // Not a JSON error response, use the body snippet if available
+      if (debug.bodySnippet) {
+        message = `Request failed with status ${res.status}. Response: ${debug.bodySnippet}`;
+      }
     }
     const err = new Error(message);
     // @ts-ignore
@@ -58,25 +58,25 @@ export async function fetchJson(
     err.response = res;
     throw err;
   }
-  
+
   // If the response IS ok, but the content type is not JSON, throw a clear error.
   if (!debug.contentType.includes('application/json')) {
-      const err = new Error(`Expected JSON response but received '${debug.contentType}'. Response body: ${debug.bodySnippet}`);
-      // @ts-ignore
-      err.debug = debug;
-      throw err;
+    const err = new Error(`Expected JSON response but received '${debug.contentType}'. Response body: ${debug.bodySnippet}`);
+    // @ts-ignore
+    err.debug = debug;
+    throw err;
   }
 
   try {
     // If there's no body, return undefined instead of trying to parse
     if (!text) {
-        return undefined;
+      return undefined;
     }
     return JSON.parse(text);
   } catch (e) {
     console.error('fetchJson - Failed to parse JSON response. Debug:', debug, e);
     const err = new Error('Response was not valid JSON.');
-     // @ts-ignore
+    // @ts-ignore
     err.debug = debug;
     throw err;
   }

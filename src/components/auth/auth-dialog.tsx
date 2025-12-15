@@ -79,6 +79,7 @@ export function AuthDialog({ mode, onModeChange }: AuthDialogProps) {
       router.push('/auth/callback');
       handleOpenChange(false);
     } catch (error: any) {
+      console.error('Auth error:', error); // Debug log
       let description = 'An unexpected error occurred. Please try again.';
       if (error.code === 'auth/invalid-credential' && mode === 'login') {
           description = 'Login failed. Please check your credentials and try again.';
@@ -86,8 +87,10 @@ export function AuthDialog({ mode, onModeChange }: AuthDialogProps) {
           description = 'This email is already in use. Please try logging in or use a different email.';
       } else if (error.code === 'auth/invalid-email') {
           description = 'The generated email for your username is invalid. Please try a different username.'
-      } else if (error.code === 'auth/weak-password') {
-          description = 'The password is too weak. Please use at least 6 characters.';
+      } else if (error.code === 'auth/weak-password' || error.code?.includes('WEAK_PASSWORD')) {
+          description = 'Password must be at least 6 characters long.';
+      } else if (error.code === 'auth/configuration-not-found') {
+          description = 'Authentication is not properly configured. Please contact support.';
       } else if (error.message) {
         description = error.message;
       }
