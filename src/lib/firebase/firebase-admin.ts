@@ -10,7 +10,20 @@ if (!getApps().length) {
   try {
     const projectId = process.env.FIREBASE_PROJECT_ID || process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+    // Handle various formats of private key from environment variables
+    let privateKey: string | undefined = process.env.FIREBASE_PRIVATE_KEY;
+    if (privateKey) {
+      // If the key is JSON-escaped (wrapped in quotes), parse it
+      if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
+        try {
+          privateKey = JSON.parse(privateKey) as string;
+        } catch (e) {
+          // Not valid JSON, continue with other replacements
+        }
+      }
+      // Replace escaped newlines with actual newlines
+      privateKey = privateKey!.replace(/\\n/g, '\n');
+    }
 
     if (!projectId) {
       throw new Error('Missing FIREBASE_PROJECT_ID environment variable');
