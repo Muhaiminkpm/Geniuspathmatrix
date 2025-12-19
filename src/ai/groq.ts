@@ -6,7 +6,7 @@
  */
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_API_KEY = process.env.GROQ_API_KEY || '';
+const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const MODEL_NAME = 'moonshotai/kimi-k2-instruct-0905';
 
 interface GroqChatMessage {

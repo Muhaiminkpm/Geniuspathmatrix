@@ -68,18 +68,12 @@ Structure your response to include:
    - Opportunities: External market factors in their favor
    - Threats: External challenges they should be aware of
 
-4. **Career Development Roadmap**: Provide a timeline-based plan:
-   - Short-term (Next 6 months)
-   - Medium-term (6-12 months)
-   - Long-term (1-2 years)
-   Include specific milestones and goals for each phase.
+4. **Career Development Roadmap**: Provide a detailed, timeline-based plan as a SINGLE STRING. DO NOT return an object. Use markdown formatting like bold text or bullet points if needed.
+   Example format:
+   "**Short-term (Next 6 months)**: [Details...]\n**Medium-term (6-12 months)**: [Details...]\n**Long-term (1-2 years)**: [Details...]"
 
-5. **Next Steps**: List concrete, actionable steps they can take immediately, such as:
-   - Courses or certifications to pursue
-   - Skills to develop
-   - Experiences to gain
-   - People to connect with
-   - Research to conduct
+5. **Next Steps**: Provide a simple ARRAY of STRINGS. Each string should be a single action item. DO NOT return an array of objects.
+   Example: ["Enroll in a web development course", "Update LinkedIn profile", "Network with industry professionals"]
 
 Make the report motivating and practical.`;
 

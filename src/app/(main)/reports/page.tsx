@@ -156,7 +156,11 @@ export default function ReportsPage() {
                                 </CardHeader>
                                 {expandedSections.has('summary') && (
                                     <CardContent>
-                                        <p className="text-muted-foreground whitespace-pre-wrap">{careerReport.executiveSummary}</p>
+                                        <div className="text-muted-foreground whitespace-pre-wrap">
+                                            {typeof careerReport.executiveSummary === 'string'
+                                                ? careerReport.executiveSummary
+                                                : JSON.stringify(careerReport.executiveSummary, null, 2)}
+                                        </div>
                                     </CardContent>
                                 )}
                             </Card>
@@ -248,7 +252,24 @@ export default function ReportsPage() {
                                 </CardHeader>
                                 {expandedSections.has('roadmap') && (
                                     <CardContent>
-                                        <p className="text-muted-foreground whitespace-pre-wrap">{careerReport.roadmap}</p>
+                                        <div className="text-muted-foreground whitespace-pre-wrap">
+                                            {typeof careerReport.roadmap === 'string' ? (
+                                                careerReport.roadmap
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    {Object.entries(careerReport.roadmap || {}).map(([key, value]) => (
+                                                        <div key={key}>
+                                                            <h4 className="font-semibold capitalize text-primary mb-1">
+                                                                {key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')}
+                                                            </h4>
+                                                            <div className="pl-2 border-l-2 border-primary/20">
+                                                                {typeof value === 'string' ? value : JSON.stringify(value)}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     </CardContent>
                                 )}
                             </Card>
@@ -263,13 +284,32 @@ export default function ReportsPage() {
                                 </CardHeader>
                                 {expandedSections.has('nextSteps') && (
                                     <CardContent>
-                                        <ul className="space-y-2">
-                                            {(careerReport.nextSteps || []).map((step, idx) => (
-                                                <li key={idx} className="flex gap-2">
-                                                    <span className="font-semibold text-primary">{idx + 1}.</span>
-                                                    <span>{step}</span>
-                                                </li>
-                                            ))}
+                                        <ul className="space-y-3">
+                                            {Array.isArray(careerReport.nextSteps) ? (
+                                                careerReport.nextSteps.map((step, idx) => (
+                                                    <li key={idx} className="flex gap-3">
+                                                        <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                                                            {idx + 1}
+                                                        </span>
+                                                        <span className="pt-0.5">
+                                                            {typeof step === 'string' ? step : JSON.stringify(step)}
+                                                        </span>
+                                                    </li>
+                                                ))
+                                            ) : typeof careerReport.nextSteps === 'object' && careerReport.nextSteps !== null ? (
+                                                Object.entries(careerReport.nextSteps).map(([key, value], idx) => (
+                                                    <li key={key} className="flex gap-3">
+                                                        <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                                                            {idx + 1}
+                                                        </span>
+                                                        <span className="pt-0.5">
+                                                            <strong className="capitalize">{key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ')}:</strong> {String(value)}
+                                                        </span>
+                                                    </li>
+                                                ))
+                                            ) : (
+                                                <li className="text-muted-foreground italic text-sm">No next steps available.</li>
+                                            )}
                                         </ul>
                                     </CardContent>
                                 )}
